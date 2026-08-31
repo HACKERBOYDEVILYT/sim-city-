@@ -1,302 +1,174 @@
-// MetroCity V5
-// Building Engine V2
-// Placement + Upgrade + Services + Population + Happiness
+/* ============================================================
+   MetroCity V5 — BuildingEngine
+   Building placement + upgrade + demolish + simulation
+============================================================ */
 
 export class BuildingEngine {
-
-    constructor(city, camera, canvas) {
-
-        this.city = city;
-        this.camera = camera;
-        this.canvas = canvas;
-
-        this.selectedBuilding = null;
-
-        this.hoverPoint = null;
-
-        this.previewBuilding = null;
-
-        this.isPlacing = false;
-
-        this.bindEvents();
-    }
-
-
-    // =========================================================
-    // BUILDING DATABASE
-    // =========================================================
 
     static TYPES = {
 
         house: {
             name: "Residential",
             icon: "🏠",
-
+            color: "#7b9cc7",
             cost: 100,
-
-            size: 46,
-
-            population: 12,
-
+            population: 20,
             workers: 0,
-
-            happiness: 1,
-
-            power: -1,
-
-            water: -1,
-
-            serviceRadius: 0,
-
-            color: "#92715e"
+            happiness: 2,
+            service: 0,
+            size: 64
         },
-
 
         commercial: {
             name: "Commercial",
             icon: "🏢",
-
+            color: "#c49a65",
             cost: 250,
-
-            size: 52,
-
-            population: 0,
-
-            workers: 8,
-
-            happiness: 2,
-
-            power: -3,
-
-            water: -2,
-
-            serviceRadius: 0,
-
-            color: "#5e7690"
+            population: 8,
+            workers: 18,
+            happiness: 3,
+            service: 0,
+            size: 72
         },
-
 
         industrial: {
             name: "Industrial",
             icon: "🏭",
-
+            color: "#7e858c",
             cost: 350,
-
-            size: 58,
-
-            population: 0,
-
-            workers: 15,
-
+            population: 5,
+            workers: 28,
             happiness: -2,
-
-            power: -5,
-
-            water: -3,
-
-            serviceRadius: 0,
-
-            color: "#817653"
+            service: 0,
+            size: 76
         },
-
 
         hospital: {
             name: "Hospital",
             icon: "🏥",
-
+            color: "#c86d72",
             cost: 5000,
-
-            size: 70,
-
             population: 0,
-
-            workers: 25,
-
-            happiness: 8,
-
-            power: -8,
-
-            water: -6,
-
-            serviceRadius: 260,
-
-            color: "#815e67"
+            workers: 45,
+            happiness: 10,
+            service: 100,
+            size: 90
         },
-
 
         police: {
             name: "Police Station",
             icon: "🚓",
-
+            color: "#647fa8",
             cost: 3500,
-
-            size: 62,
-
             population: 0,
-
-            workers: 12,
-
-            happiness: 5,
-
-            power: -4,
-
-            water: -2,
-
-            serviceRadius: 300,
-
-            color: "#4f6582"
+            workers: 25,
+            happiness: 7,
+            service: 80,
+            size: 82
         },
-
 
         fire: {
             name: "Fire Station",
             icon: "🚒",
-
+            color: "#b85f50",
             cost: 3000,
-
-            size: 62,
-
             population: 0,
-
-            workers: 10,
-
-            happiness: 4,
-
-            power: -4,
-
-            water: -4,
-
-            serviceRadius: 280,
-
-            color: "#8a514b"
+            workers: 25,
+            happiness: 6,
+            service: 80,
+            size: 82
         },
-
 
         school: {
             name: "School",
             icon: "🏫",
-
+            color: "#b3a269",
             cost: 4000,
-
-            size: 66,
-
             population: 0,
-
-            workers: 18,
-
-            happiness: 6,
-
-            power: -5,
-
-            water: -3,
-
-            serviceRadius: 240,
-
-            color: "#76684e"
+            workers: 30,
+            happiness: 8,
+            service: 90,
+            size: 88
         },
-
 
         park: {
             name: "Park",
             icon: "🌳",
-
+            color: "#63875f",
             cost: 500,
-
-            size: 62,
-
             population: 0,
-
-            workers: 0,
-
-            happiness: 7,
-
-            power: 0,
-
-            water: -1,
-
-            serviceRadius: 180,
-
-            color: "#4c704d"
+            workers: 2,
+            happiness: 12,
+            service: 50,
+            size: 82
         },
-
 
         power: {
             name: "Power Plant",
             icon: "⚡",
-
+            color: "#9a8b56",
             cost: 2000,
-
-            size: 64,
-
             population: 0,
-
-            workers: 8,
-
-            happiness: -3,
-
-            power: 80,
-
-            water: -3,
-
-            serviceRadius: 0,
-
-            color: "#80634b"
+            workers: 15,
+            happiness: -1,
+            service: 120,
+            size: 86
         },
-
 
         water: {
             name: "Water Plant",
             icon: "💧",
-
+            color: "#5289a8",
             cost: 1500,
-
-            size: 58,
-
             population: 0,
-
-            workers: 6,
-
-            happiness: -1,
-
-            power: -4,
-
-            water: 80,
-
-            serviceRadius: 0,
-
-            color: "#507d8c"
+            workers: 12,
+            happiness: 2,
+            service: 120,
+            size: 86
         },
-
 
         stadium: {
             name: "Stadium",
             icon: "🏟️",
-
+            color: "#786c9b",
             cost: 12000,
-
-            size: 100,
-
             population: 0,
-
-            workers: 20,
-
-            happiness: 12,
-
-            power: -10,
-
-            water: -6,
-
-            serviceRadius: 350,
-
-            color: "#655978"
+            workers: 65,
+            happiness: 15,
+            service: 150,
+            size: 120
         }
 
     };
 
 
-    // =========================================================
-    // INPUT
-    // =========================================================
+    constructor(
+        city,
+        camera,
+        canvas
+    ) {
+
+        this.city = city;
+
+        this.camera = camera;
+
+        this.canvas = canvas;
+
+        this.selectedBuilding = null;
+
+        this.previewPoint = null;
+
+        this.pointerId = null;
+
+        this.bindEvents();
+
+        this.startSimulation();
+    }
+
+
+    /* ========================================================
+       EVENTS
+    ======================================================== */
 
     bindEvents() {
 
@@ -304,11 +176,18 @@ export class BuildingEngine {
             "pointermove",
             event => {
 
-                this.hoverPoint =
-                    this.screenToWorld(
-                        event.clientX,
-                        event.clientY
-                    );
+                if (
+                    this.city.currentTool &&
+                    this.city.currentTool !== "road"
+                ) {
+
+                    this.previewPoint =
+                        this.screenToWorld(
+                            event.clientX,
+                            event.clientY
+                        );
+
+                }
 
             }
         );
@@ -318,148 +197,52 @@ export class BuildingEngine {
             "pointerdown",
             event => {
 
-                this.handlePointerDown(event);
-
-            }
-        );
-
-
-        this.canvas.addEventListener(
-            "pointerup",
-            event => {
-
-                this.handlePointerUp(event);
-
-            }
-        );
+                if (
+                    this.city.currentTool === "road"
+                ) {
+                    return;
+                }
 
 
-        this.canvas.addEventListener(
-            "pointercancel",
-            () => {
-
-                this.cancelPlacement();
-
-            }
-        );
-    }
+                if (
+                    !this.city.currentTool
+                ) {
+                    return;
+                }
 
 
-    // =========================================================
-    // POINTER DOWN
-    // =========================================================
-
-    handlePointerDown(event) {
-
-        if (
-            !this.city.currentTool ||
-            this.city.currentTool === "road"
-        ) {
-
-            return;
-        }
+                const type =
+                    this.city.currentTool;
 
 
-        const point =
-            this.screenToWorld(
-                event.clientX,
-                event.clientY
-            );
+                if (
+                    !BuildingEngine.TYPES[type]
+                ) {
+                    return;
+                }
 
 
-        this.isPlacing = true;
-
-        this.hoverPoint = point;
-
-        this.previewBuilding =
-            this.createPreview(
-                this.city.currentTool,
-                point.x,
-                point.y
-            );
-    }
+                const point =
+                    this.screenToWorld(
+                        event.clientX,
+                        event.clientY
+                    );
 
 
-    // =========================================================
-    // POINTER UP
-    // =========================================================
-
-    handlePointerUp(event) {
-
-        if (!this.isPlacing)
-            return;
-
-
-        const point =
-            this.screenToWorld(
-                event.clientX,
-                event.clientY
-            );
-
-
-        const building =
-            this.placeBuilding(
-                this.city.currentTool,
-                point.x,
-                point.y
-            );
-
-
-        if (building) {
-
-            this.selectedBuilding =
-                building;
-
-        }
-
-
-        this.cancelPlacement();
-    }
-
-
-    // =========================================================
-    // CREATE PREVIEW
-    // =========================================================
-
-    createPreview(
-        type,
-        x,
-        y
-    ) {
-
-        const data =
-            BuildingEngine.TYPES[type];
-
-
-        if (!data)
-            return null;
-
-
-        return {
-
-            type,
-
-            x,
-
-            y,
-
-            size:
-                data.size,
-
-            valid:
-                this.canPlace(
+                this.placeBuilding(
                     type,
-                    x,
-                    y
-                )
+                    point.x,
+                    point.y
+                );
 
-        };
+            }
+        );
     }
 
 
-    // =========================================================
-    // PLACE BUILDING
-    // =========================================================
+    /* ========================================================
+       PLACE BUILDING
+    ======================================================== */
 
     placeBuilding(
         type,
@@ -472,32 +255,13 @@ export class BuildingEngine {
 
 
         if (!data) {
-
-            this.notify(
-                "Unknown Building",
-                "This building type does not exist."
-            );
-
-            return null;
+            return false;
         }
 
 
-        if (
-            !this.canPlace(
-                type,
-                x,
-                y
-            )
-        ) {
-
-            this.notify(
-                "Cannot Build Here",
-                "The selected location is occupied or invalid."
-            );
-
-            return null;
-        }
-
+        /*
+         * Check money.
+         */
 
         if (
             this.city.money <
@@ -506,19 +270,87 @@ export class BuildingEngine {
 
             this.notify(
                 "Not Enough Money",
-                `You need $${data.cost.toLocaleString()}.`
+                `${data.name} costs $${data.cost.toLocaleString()}.`
             );
 
-            return null;
+            return false;
         }
 
+
+        /*
+         * Snap building to grid.
+         */
+
+        x =
+            Math.round(
+                x / 10
+            ) * 10;
+
+
+        y =
+            Math.round(
+                y / 10
+            ) * 10;
+
+
+        /*
+         * Prevent overlapping buildings.
+         */
+
+        if (
+            this.isOccupied(
+                x,
+                y,
+                data.size
+            )
+        ) {
+
+            this.notify(
+                "Cannot Build Here",
+                "This location is already occupied."
+            );
+
+            return false;
+        }
+
+
+        /*
+         * Require nearby road.
+         */
+
+        if (
+            type !== "park" &&
+            type !== "power" &&
+            type !== "water" &&
+            !this.hasNearbyRoad(
+                x,
+                y,
+                230
+            )
+        ) {
+
+            this.notify(
+                "No Road Access",
+                "Build a road near this location first."
+            );
+
+            return false;
+        }
+
+
+        /*
+         * Create building.
+         */
 
         const building = {
 
             id:
-                this.generateId(
-                    "building"
-                ),
+                "building_" +
+                Date.now() +
+                "_" +
+                Math.random()
+                    .toString(36)
+                    .slice(2, 8),
 
             type,
 
@@ -531,16 +363,17 @@ export class BuildingEngine {
 
             level: 1,
 
-            experience: 0,
-
-            happiness:
-                data.happiness,
-
             population:
                 data.population,
 
             workers:
                 data.workers,
+
+            happiness:
+                data.happiness,
+
+            service:
+                data.service,
 
             createdAt:
                 Date.now()
@@ -548,77 +381,66 @@ export class BuildingEngine {
         };
 
 
-        this.city.buildings.push(
-            building
-        );
-
+        /*
+         * Pay.
+         */
 
         this.city.money -=
             data.cost;
 
 
-        this.applyBuildingEffects(
-            building,
-            true
-        );
+        /*
+         * Add building.
+         */
 
-
-        this.notify(
-            "Building Constructed",
-            `${data.icon} ${data.name} built successfully.`
-        );
-
-
-        this.emit(
-            "buildingCreated",
+        this.city.buildings.push(
             building
         );
 
 
-        return building;
+        /*
+         * Recalculate city.
+         */
+
+        this.recalculateCity();
+
+
+        /*
+         * Notification.
+         */
+
+        this.notify(
+            "Building Constructed",
+            `${data.name} has been added to your city.`
+        );
+
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "metrocity:buildingCreated",
+                {
+                    detail: building
+                }
+            )
+        );
+
+
+        return true;
     }
 
 
-    // =========================================================
-    // CAN PLACE
-    // =========================================================
+    /* ========================================================
+       OCCUPIED CHECK
+    ======================================================== */
 
-    canPlace(
-        type,
+    isOccupied(
         x,
-        y
+        y,
+        size
     ) {
 
-        const data =
-            BuildingEngine.TYPES[type];
+        const padding = 12;
 
-
-        if (!data)
-            return false;
-
-
-        const half =
-            data.size / 2;
-
-
-        // World boundary
-
-        const limit =
-            1100;
-
-
-        if (
-            x - half < -limit ||
-            x + half > limit ||
-            y - half < -limit ||
-            y + half > limit
-        ) {
-
-            return false;
-        }
-
-
-        // Building collision
 
         for (
             const building
@@ -626,19 +448,18 @@ export class BuildingEngine {
         ) {
 
             const distance =
-                this.distance(
-                    {
-                        x,
-                        y
-                    },
-                    building
+                Math.hypot(
+                    building.x - x,
+                    building.y - y
                 );
 
 
             const minimum =
-                half +
-                building.size / 2 +
-                12;
+                (
+                    building.size +
+                    size
+                ) / 2 +
+                padding;
 
 
             if (
@@ -646,422 +467,60 @@ export class BuildingEngine {
                 minimum
             ) {
 
-                return false;
-            }
-        }
-
-
-        return true;
-    }
-
-
-    // =========================================================
-    // BUILDING UPGRADE
-    // =========================================================
-
-    upgradeBuilding(
-        building
-    ) {
-
-        if (!building)
-            return false;
-
-
-        const data =
-            BuildingEngine.TYPES[
-                building.type
-            ];
-
-
-        if (!data)
-            return false;
-
-
-        const maxLevel = 5;
-
-
-        if (
-            building.level >=
-            maxLevel
-        ) {
-
-            this.notify(
-                "Maximum Level",
-                "This building has reached maximum level."
-            );
-
-            return false;
-        }
-
-
-        const upgradeCost =
-            Math.floor(
-                data.cost *
-                (
-                    0.65 *
-                    building.level
-                )
-            );
-
-
-        if (
-            this.city.money <
-            upgradeCost
-        ) {
-
-            this.notify(
-                "Not Enough Money",
-                `Upgrade costs $${upgradeCost.toLocaleString()}.`
-            );
-
-            return false;
-        }
-
-
-        this.city.money -=
-            upgradeCost;
-
-
-        this.removeBuildingEffects(
-            building
-        );
-
-
-        building.level += 1;
-
-
-        building.experience = 0;
-
-
-        building.population =
-            Math.floor(
-                data.population *
-                building.level
-            );
-
-
-        building.workers =
-            Math.floor(
-                data.workers *
-                building.level
-            );
-
-
-        building.happiness =
-            data.happiness *
-            building.level;
-
-
-        this.applyBuildingEffects(
-            building,
-            false
-        );
-
-
-        this.notify(
-            "Building Upgraded",
-            `${data.icon} ${data.name} is now Level ${building.level}.`
-        );
-
-
-        this.emit(
-            "buildingUpgraded",
-            building
-        );
-
-
-        return true;
-    }
-
-
-    // =========================================================
-    // DEMOLISH
-    // =========================================================
-
-    demolishBuilding(
-        building
-    ) {
-
-        if (!building)
-            return false;
-
-
-        const index =
-            this.city.buildings.indexOf(
-                building
-            );
-
-
-        if (
-            index === -1
-        ) {
-
-            return false;
-        }
-
-
-        this.removeBuildingEffects(
-            building
-        );
-
-
-        this.city.buildings.splice(
-            index,
-            1
-        );
-
-
-        const data =
-            BuildingEngine.TYPES[
-                building.type
-            ];
-
-
-        const refund =
-            Math.floor(
-                (
-                    data.cost *
-                    building.level
-                ) *
-                0.25
-            );
-
-
-        this.city.money +=
-            refund;
-
-
-        this.notify(
-            "Building Demolished",
-            `Refund received: $${refund.toLocaleString()}.`
-        );
-
-
-        this.emit(
-            "buildingDemolished",
-            building
-        );
-
-
-        return true;
-    }
-
-
-    // =========================================================
-    // BUILDING EFFECTS
-    // =========================================================
-
-    applyBuildingEffects(
-        building,
-        notify = false
-    ) {
-
-        const data =
-            BuildingEngine.TYPES[
-                building.type
-            ];
-
-
-        if (!data)
-            return;
-
-
-        if (
-            !this.city.population
-        ) {
-
-            this.city.population = 0;
-
-        }
-
-
-        this.city.population +=
-            building.population;
-
-
-        this.city.happiness +=
-            building.happiness;
-
-
-        if (
-            typeof data.power ===
-            "number"
-        ) {
-
-            if (
-                data.power > 0
-            ) {
-
-                this.city.power +=
-                    data.power;
-
+                return true;
             }
 
         }
 
 
-        this.clampCityStats();
-
-
-        if (notify) {
-
-            this.emit(
-                "cityUpdated",
-                this.city
-            );
-
-        }
+        return false;
     }
 
 
-    // =========================================================
-    // REMOVE EFFECTS
-    // =========================================================
+    /* ========================================================
+       ROAD ACCESS
+    ======================================================== */
 
-    removeBuildingEffects(
-        building
+    hasNearbyRoad(
+        x,
+        y,
+        maxDistance
     ) {
-
-        const data =
-            BuildingEngine.TYPES[
-                building.type
-            ];
-
-
-        if (!data)
-            return;
-
-
-        this.city.population -=
-            building.population;
-
-
-        this.city.happiness -=
-            building.happiness;
-
-
-        if (
-            data.power > 0
-        ) {
-
-            this.city.power -=
-                data.power;
-
-        }
-
-
-        this.clampCityStats();
-    }
-
-
-    // =========================================================
-    // CITY STAT LIMITS
-    // =========================================================
-
-    clampCityStats() {
-
-        this.city.population =
-            Math.max(
-                0,
-                Math.floor(
-                    this.city.population
-                )
-            );
-
-
-        this.city.happiness =
-            Math.max(
-                0,
-                Math.min(
-                    100,
-                    Math.round(
-                        this.city.happiness
-                    )
-                )
-            );
-
-
-        this.city.power =
-            Math.max(
-                0,
-                Math.min(
-                    999,
-                    Math.round(
-                        this.city.power
-                    )
-                )
-            );
-    }
-
-
-    // =========================================================
-    // SERVICE COVERAGE
-    // =========================================================
-
-    getServiceCoverage(
-        building
-    ) {
-
-        const data =
-            BuildingEngine.TYPES[
-                building.type
-            ];
-
-
-        if (!data)
-            return 0;
-
-
-        if (
-            !data.serviceRadius
-        ) {
-
-            return 0;
-        }
-
-
-        let populationCovered = 0;
-
 
         for (
-            const other
-            of this.city.buildings
+            const road
+            of this.city.roads
         ) {
 
-            if (
-                other.type !==
-                "house"
-            ) {
-
-                continue;
-            }
-
-
             const distance =
-                this.distance(
-                    building,
-                    other
+                this.distanceToSegment(
+                    x,
+                    y,
+                    road.x1,
+                    road.y1,
+                    road.x2,
+                    road.y2
                 );
 
 
             if (
                 distance <=
-                data.serviceRadius
+                maxDistance
             ) {
 
-                populationCovered +=
-                    other.population;
+                return true;
             }
+
         }
 
 
-        return populationCovered;
+        return false;
     }
 
 
-    // =========================================================
-    // FIND BUILDING
-    // =========================================================
+    /* ========================================================
+       FIND BUILDING
+    ======================================================== */
 
     findBuildingAt(
         x,
@@ -1087,6 +546,7 @@ export class BuildingEngine {
 
 
             if (
+
                 x >=
                     building.x - half &&
 
@@ -1098,10 +558,12 @@ export class BuildingEngine {
 
                 y <=
                     building.y + half
+
             ) {
 
                 return building;
             }
+
         }
 
 
@@ -1109,9 +571,9 @@ export class BuildingEngine {
     }
 
 
-    // =========================================================
-    // SELECT BUILDING
-    // =========================================================
+    /* ========================================================
+       SELECT
+    ======================================================== */
 
     selectBuilding(
         building
@@ -1120,153 +582,21 @@ export class BuildingEngine {
         this.selectedBuilding =
             building;
 
-
-        this.emit(
-            "buildingSelected",
-            building
-        );
     }
 
 
-    // =========================================================
-    // PREVIEW DRAW
-    // =========================================================
+    /* ========================================================
+       UPGRADE
+    ======================================================== */
 
-    drawPreview(
-        ctx
-    ) {
-
-        if (
-            !this.previewBuilding
-        ) {
-
-            return;
-        }
-
-
-        const preview =
-            this.previewBuilding;
-
-
-        ctx.save();
-
-
-        ctx.translate(
-            preview.x,
-            preview.y
-        );
-
-
-        const valid =
-            preview.valid;
-
-
-        ctx.globalAlpha =
-            0.55;
-
-
-        ctx.fillStyle =
-            valid
-                ? "#77a96b"
-                : "#a05252";
-
-
-        ctx.fillRect(
-
-            -preview.size / 2,
-
-            -preview.size / 2,
-
-            preview.size,
-
-            preview.size
-
-        );
-
-
-        ctx.globalAlpha =
-            0.9;
-
-
-        ctx.strokeStyle =
-            valid
-                ? "#b6d8a7"
-                : "#e08080";
-
-
-        ctx.lineWidth = 2;
-
-
-        ctx.setLineDash([
-            6,
-            5
-        ]);
-
-
-        ctx.strokeRect(
-
-            -preview.size / 2,
-
-            -preview.size / 2,
-
-            preview.size,
-
-            preview.size
-
-        );
-
-
-        ctx.setLineDash([]);
-
-
-        ctx.restore();
-
-    }
-
-
-    // =========================================================
-    // DRAW BUILDING DETAILS
-    // =========================================================
-
-    drawBuildingDetails(
-        ctx
-    ) {
-
-        for (
-            const building
-            of this.city.buildings
-        ) {
-
-            this.drawBuildingIcon(
-                ctx,
-                building
-            );
-
-
-            if (
-                this.selectedBuilding &&
-                this.selectedBuilding.id ===
-                    building.id
-            ) {
-
-                this.drawSelection(
-                    ctx,
-                    building
-                );
-
-            }
-        }
-    }
-
-
-    // =========================================================
-    // ICON
-    // =========================================================
-
-    drawBuildingIcon(
-        ctx,
+    upgradeBuilding(
         building
     ) {
+
+        if (!building) {
+            return false;
+        }
+
 
         const data =
             BuildingEngine.TYPES[
@@ -1274,125 +604,803 @@ export class BuildingEngine {
             ];
 
 
-        if (!data)
-            return;
+        if (!data) {
+            return false;
+        }
 
 
-        ctx.save();
+        const maxLevel = 5;
 
-
-        ctx.translate(
-            building.x,
-            building.y
-        );
-
-
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "middle";
-
-
-        ctx.font =
-            `${Math.max(
-                14,
-                building.size * 0.35
-            )}px Arial`;
-
-
-        ctx.fillText(
-            data.icon,
-            0,
-            0
-        );
-
-
-        // Level badge
 
         if (
-            building.level > 1
+            building.level >=
+            maxLevel
         ) {
 
-            ctx.font =
-                "bold 9px Arial";
-
-
-            ctx.fillStyle =
-                "rgba(10,10,10,0.75)";
-
-
-            ctx.beginPath();
-
-            ctx.roundRect(
-                building.size / 2 - 14,
-                -building.size / 2 - 7,
-                22,
-                14,
-                5
+            this.notify(
+                "Maximum Level",
+                "This building has reached level 5."
             );
 
-            ctx.fill();
+            return false;
+        }
 
 
-            ctx.fillStyle =
-                "white";
-
-
-            ctx.fillText(
-                "Lv." +
-                building.level,
-
-                building.size / 2 - 3,
-
-                -building.size / 2
+        const upgradeCost =
+            Math.round(
+                data.cost *
+                (
+                    0.65 +
+                    building.level *
+                    0.55
+                )
             );
+
+
+        if (
+            this.city.money <
+            upgradeCost
+        ) {
+
+            this.notify(
+                "Not Enough Money",
+                `Upgrade costs $${upgradeCost.toLocaleString()}.`
+            );
+
+            return false;
+        }
+
+
+        this.city.money -=
+            upgradeCost;
+
+
+        building.level +=
+            1;
+
+
+        /*
+         * Increase building stats.
+         */
+
+        const multiplier =
+            1 +
+            (
+                (
+                    building.level -
+                    1
+                ) *
+                0.35
+            );
+
+
+        building.population =
+            Math.round(
+                data.population *
+                multiplier
+            );
+
+
+        building.workers =
+            Math.round(
+                data.workers *
+                multiplier
+            );
+
+
+        building.happiness =
+            Math.round(
+                data.happiness *
+                multiplier
+            );
+
+
+        building.service =
+            Math.round(
+                data.service *
+                multiplier
+            );
+
+
+        building.size =
+            Math.min(
+                data.size *
+                (
+                    1 +
+                    (
+                        building.level -
+                        1
+                    ) *
+                    0.06
+                ),
+
+                data.size * 1.3
+            );
+
+
+        this.recalculateCity();
+
+
+        this.notify(
+            "Building Upgraded",
+            `${data.name} is now level ${building.level}.`
+        );
+
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "metrocity:buildingUpgraded",
+                {
+                    detail: building
+                }
+            )
+        );
+
+
+        return true;
+    }
+
+
+    /* ========================================================
+       DEMOLISH
+    ======================================================== */
+
+    demolishBuilding(
+        building
+    ) {
+
+        if (!building) {
+            return false;
+        }
+
+
+        const index =
+            this.city.buildings.indexOf(
+                building
+            );
+
+
+        if (
+            index === -1
+        ) {
+
+            return false;
+        }
+
+
+        const data =
+            BuildingEngine.TYPES[
+                building.type
+            ];
+
+
+        /*
+         * Refund part of construction
+         * cost.
+         */
+
+        const refund =
+            Math.round(
+                (
+                    data?.cost || 0
+                ) *
+                0.35
+            );
+
+
+        this.city.money +=
+            refund;
+
+
+        this.city.buildings.splice(
+            index,
+            1
+        );
+
+
+        if (
+            this.selectedBuilding ===
+            building
+        ) {
+
+            this.selectedBuilding =
+                null;
 
         }
 
 
-        ctx.restore();
+        this.recalculateCity();
+
+
+        this.notify(
+            "Building Demolished",
+            `You received $${refund.toLocaleString()} refund.`
+        );
+
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "metrocity:buildingDemolished",
+                {
+                    detail: building
+                }
+            )
+        );
+
+
+        return true;
     }
 
 
-    // =========================================================
-    // SELECTION
-    // =========================================================
+    /* ========================================================
+       SERVICE COVERAGE
+    ======================================================== */
 
-    drawSelection(
-        ctx,
+    getServiceCoverage(
         building
     ) {
+
+        if (!building) {
+            return 0;
+        }
+
+
+        let coverage = 0;
+
+
+        for (
+            const other
+            of this.city.buildings
+        ) {
+
+            const data =
+                BuildingEngine.TYPES[
+                    other.type
+                ];
+
+
+            if (
+                !data ||
+                data.service <= 0
+            ) {
+                continue;
+            }
+
+
+            const distance =
+                Math.hypot(
+                    other.x -
+                        building.x,
+
+                    other.y -
+                        building.y
+                );
+
+
+            const radius =
+                220 *
+                Math.max(
+                    1,
+                    other.level
+                );
+
+
+            if (
+                distance <=
+                radius
+            ) {
+
+                const factor =
+                    1 -
+                    (
+                        distance /
+                        radius
+                    );
+
+
+                coverage +=
+                    data.service *
+                    factor;
+
+            }
+
+        }
+
+
+        return Math.round(
+            coverage
+        );
+    }
+
+
+    /* ========================================================
+       CITY RECALCULATION
+    ======================================================== */
+
+    recalculateCity() {
+
+        let population = 0;
+
+        let workers = 0;
+
+        let happiness = 70;
+
+        let powerSupply = 0;
+
+        let powerDemand = 0;
+
+
+        for (
+            const building
+            of this.city.buildings
+        ) {
+
+            const data =
+                BuildingEngine.TYPES[
+                    building.type
+                ];
+
+
+            if (!data) {
+                continue;
+            }
+
+
+            population +=
+                building.population ||
+                0;
+
+
+            workers +=
+                building.workers ||
+                0;
+
+
+            happiness +=
+                building.happiness ||
+                0;
+
+
+            if (
+                building.type ===
+                "power"
+            ) {
+
+                powerSupply +=
+                    building.service ||
+                    0;
+
+            }
+
+
+            if (
+                building.type !==
+                "power"
+            ) {
+
+                powerDemand +=
+                    Math.max(
+                        1,
+                        (
+                            building.population ||
+                            0
+                        ) * 0.04
+                    );
+
+            }
+
+        }
+
+
+        /*
+         * Roads improve city
+         * accessibility.
+         */
+
+        const roadBonus =
+            Math.min(
+                12,
+                this.city.roads.length *
+                0.8
+            );
+
+
+        happiness +=
+            roadBonus;
+
+
+        /*
+         * Parks and services.
+         */
+
+        const parkCount =
+            this.city.buildings.filter(
+                building =>
+                    building.type ===
+                    "park"
+            ).length;
+
+
+        happiness +=
+            Math.min(
+                10,
+                parkCount * 1.5
+            );
+
+
+        /*
+         * Power calculation.
+         */
+
+        if (
+            powerDemand <= 0
+        ) {
+
+            this.city.power =
+                100;
+
+        } else {
+
+            this.city.power =
+                Math.min(
+                    100,
+
+                    (
+                        powerSupply /
+                        powerDemand
+                    ) *
+                    100
+                );
+
+        }
+
+
+        /*
+         * Power shortage reduces happiness.
+         */
+
+        if (
+            this.city.power <
+            100
+        ) {
+
+            happiness -=
+                (
+                    100 -
+                    this.city.power
+                ) *
+                0.12;
+
+        }
+
+
+        this.city.population =
+            Math.max(
+                0,
+                Math.round(
+                    population
+                )
+            );
+
+
+        this.city.happiness =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    Math.round(
+                        happiness
+                    )
+                )
+            );
+
+
+        /*
+         * Store workforce for future
+         * simulation systems.
+         */
+
+        this.city.workers =
+            workers;
+
+
+        /*
+         * Dispatch update.
+         */
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "metrocity:cityUpdated"
+            )
+        );
+    }
+
+
+    /* ========================================================
+       SIMULATION
+    ======================================================== */
+
+    startSimulation() {
+
+        setInterval(
+            () => {
+
+                this.simulate();
+
+            },
+
+            5000
+        );
+    }
+
+
+    simulate() {
+
+        if (
+            this.city.buildings.length === 0
+        ) {
+
+            return;
+        }
+
+
+        const speed =
+            Number(
+                window.metroCitySpeed ||
+                1
+            );
+
+
+        /*
+         * Tax income.
+         */
+
+        let income = 0;
+
+
+        for (
+            const building
+            of this.city.buildings
+        ) {
+
+            const data =
+                BuildingEngine.TYPES[
+                    building.type
+                ];
+
+
+            if (!data) {
+                continue;
+            }
+
+
+            income +=
+                (
+                    building.population *
+                    0.12
+                );
+
+
+            income +=
+                (
+                    building.workers *
+                    0.05
+                );
+
+        }
+
+
+        income *=
+            speed;
+
+
+        /*
+         * Happiness affects income.
+         */
+
+        income *=
+            (
+                0.65 +
+                (
+                    this.city.happiness /
+                    100
+                ) *
+                0.35
+            );
+
+
+        this.city.money +=
+            income;
+
+
+        /*
+         * Small population growth.
+         */
+
+        if (
+            this.city.happiness >=
+            60
+        ) {
+
+            const growth =
+                Math.max(
+                    1,
+                    Math.round(
+                        this.city.population *
+                        0.001 *
+                        speed
+                    )
+                );
+
+
+            /*
+             * Growth is intentionally
+             * limited.
+             */
+
+            if (
+                growth > 0
+            ) {
+
+                this.city.population +=
+                    growth;
+
+            }
+
+        }
+
+
+        this.recalculateCity();
+
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "metrocity:simulationTick",
+                {
+                    detail: {
+                        income
+                    }
+                }
+            )
+        );
+    }
+
+
+    /* ========================================================
+       PREVIEW
+    ======================================================== */
+
+    drawPreview(ctx) {
+
+        if (
+            !this.city.currentTool ||
+            this.city.currentTool === "road" ||
+            !this.previewPoint
+        ) {
+
+            return;
+        }
+
+
+        const data =
+            BuildingEngine.TYPES[
+                this.city.currentTool
+            ];
+
+
+        if (!data) {
+            return;
+        }
+
+
+        let x =
+            Math.round(
+                this.previewPoint.x /
+                10
+            ) * 10;
+
+
+        let y =
+            Math.round(
+                this.previewPoint.y /
+                10
+            ) * 10;
+
+
+        const valid =
+            !this.isOccupied(
+                x,
+                y,
+                data.size
+            );
+
 
         ctx.save();
 
 
+        ctx.globalAlpha =
+            0.65;
+
+
+        /*
+         * Preview shadow.
+         */
+
+        ctx.fillStyle =
+            "rgba(0,0,0,.25)";
+
+
+        ctx.fillRect(
+
+            x -
+                data.size / 2 +
+                6,
+
+            y -
+                data.size / 2 +
+                6,
+
+            data.size,
+
+            data.size
+
+        );
+
+
+        /*
+         * Preview body.
+         */
+
+        ctx.fillStyle =
+            valid
+                ? data.color
+                : "#9a4f4f";
+
+
+        ctx.fillRect(
+
+            x -
+                data.size / 2,
+
+            y -
+                data.size / 2,
+
+            data.size,
+
+            data.size
+
+        );
+
+
+        /*
+         * Border.
+         */
+
         ctx.strokeStyle =
-            "rgba(255,255,255,0.9)";
+            valid
+                ? "rgba(255,255,255,.75)"
+                : "rgba(255,100,100,.95)";
 
 
         ctx.lineWidth = 2;
 
-
         ctx.setLineDash([
-            5,
-            4
+            7,
+            5
         ]);
 
 
         ctx.strokeRect(
 
-            building.x -
-                building.size / 2 -
-                5,
+            x -
+                data.size / 2,
 
-            building.y -
-                building.size / 2 -
-                5,
+            y -
+                data.size / 2,
 
-            building.size + 10,
+            data.size,
 
-            building.size + 10
+            data.size
 
         );
 
@@ -1400,13 +1408,105 @@ export class BuildingEngine {
         ctx.setLineDash([]);
 
 
+        /*
+         * Icon.
+         */
+
+        ctx.textAlign =
+            "center";
+
+        ctx.textBaseline =
+            "middle";
+
+        ctx.font =
+            `${Math.max(
+                18,
+                data.size * .32
+            )}px Arial`;
+
+
+        ctx.fillStyle =
+            "white";
+
+
+        ctx.fillText(
+            data.icon,
+            x,
+            y
+        );
+
+
+        /*
+         * Price.
+         */
+
+        ctx.font =
+            "bold 11px Arial";
+
+
+        const price =
+            "$" +
+            data.cost.toLocaleString();
+
+
+        const metrics =
+            ctx.measureText(
+                price
+            );
+
+
+        ctx.fillStyle =
+            "rgba(5,8,12,.85)";
+
+
+        ctx.beginPath();
+
+        ctx.roundRect(
+
+            x -
+                metrics.width / 2 -
+                8,
+
+            y +
+                data.size / 2 +
+                7,
+
+            metrics.width +
+                16,
+
+            20,
+
+            7
+
+        );
+
+        ctx.fill();
+
+
+        ctx.fillStyle =
+            "white";
+
+
+        ctx.fillText(
+
+            price,
+
+            x,
+
+            y +
+                data.size / 2 +
+                17
+
+        );
+
+
         ctx.restore();
     }
 
 
-    // =========================================================
-    // SCREEN TO WORLD
-    // =========================================================
+    /* ========================================================
+       SCREEN TO WORLD
+    ======================================================== */
 
     screenToWorld(
         screenX,
@@ -1432,7 +1532,7 @@ export class BuildingEngine {
             x:
                 (
                     x -
-                    window.innerWidth / 2 -
+                    rect.width / 2 -
                     this.camera.x
                 ) /
                 this.camera.zoom,
@@ -1440,7 +1540,7 @@ export class BuildingEngine {
             y:
                 (
                     y -
-                    window.innerHeight / 2 -
+                    rect.height / 2 -
                     this.camera.y
                 ) /
                 this.camera.zoom
@@ -1449,68 +1549,87 @@ export class BuildingEngine {
     }
 
 
-    // =========================================================
-    // DISTANCE
-    // =========================================================
+    /* ========================================================
+       DISTANCE TO LINE
+    ======================================================== */
 
-    distance(
-        a,
-        b
+    distanceToSegment(
+        px,
+        py,
+        x1,
+        y1,
+        x2,
+        y2
     ) {
 
         const dx =
-            a.x -
-            b.x;
+            x2 - x1;
 
 
         const dy =
-            a.y -
-            b.y;
+            y2 - y1;
 
 
-        return Math.sqrt(
-            dx * dx +
-            dy * dy
+        if (
+            dx === 0 &&
+            dy === 0
+        ) {
+
+            return Math.hypot(
+                px - x1,
+                py - y1
+            );
+        }
+
+
+        const t =
+            (
+                (
+                    px - x1
+                ) *
+                dx +
+
+                (
+                    py - y1
+                ) *
+                dy
+            ) /
+            (
+                dx * dx +
+                dy * dy
+            );
+
+
+        const clamped =
+            Math.max(
+                0,
+                Math.min(
+                    1,
+                    t
+                )
+            );
+
+
+        const closestX =
+            x1 +
+            clamped * dx;
+
+
+        const closestY =
+            y1 +
+            clamped * dy;
+
+
+        return Math.hypot(
+            px - closestX,
+            py - closestY
         );
     }
 
 
-    // =========================================================
-    // CANCEL
-    // =========================================================
-
-    cancelPlacement() {
-
-        this.isPlacing = false;
-
-        this.previewBuilding =
-            null;
-    }
-
-
-    // =========================================================
-    // EVENT SYSTEM
-    // =========================================================
-
-    emit(
-        name,
-        detail
-    ) {
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "metrocity:" + name,
-                {
-                    detail
-                }
-            )
-        );
-    }
-
-
-    // =========================================================
-    // NOTIFICATION
-    // =========================================================
+    /* ========================================================
+       NOTIFICATION
+    ======================================================== */
 
     notify(
         title,
@@ -1530,23 +1649,4 @@ export class BuildingEngine {
         );
     }
 
-
-    // =========================================================
-    // ID
-    // =========================================================
-
-    generateId(
-        prefix
-    ) {
-
-        return (
-            prefix +
-            "_" +
-            Date.now() +
-            "_" +
-            Math.random()
-                .toString(36)
-                .slice(2, 8)
-        );
-    }
 }
