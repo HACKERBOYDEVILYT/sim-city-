@@ -5,16 +5,35 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     >
 
-    <meta name="theme-color" content="#101820">
+    <meta
+        name="theme-color"
+        content="#101820"
+    >
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent"
+    >
 
     <title>MetroCity V5</title>
 
     <style>
 
-        * {
+        /* =========================================================
+           RESET
+        ========================================================= */
+
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -37,17 +56,26 @@
         }
 
         body {
+            color: #fff;
             user-select: none;
             -webkit-user-select: none;
+            overscroll-behavior: none;
         }
 
         button {
             font: inherit;
+            border: 0;
+            outline: 0;
         }
 
-        /* =====================================================
-           GAME
-        ===================================================== */
+        button:focus-visible {
+            outline: 2px solid rgba(255,255,255,.55);
+            outline-offset: 2px;
+        }
+
+        /* =========================================================
+           GAME CANVAS
+        ========================================================= */
 
         #game {
             position: fixed;
@@ -58,15 +86,18 @@
 
             display: block;
 
+            background: #101820;
+
             touch-action: none;
 
             cursor: default;
+
+            z-index: 1;
         }
 
-
-        /* =====================================================
+        /* =========================================================
            TOP HUD
-        ===================================================== */
+        ========================================================= */
 
         .topbar {
             position: fixed;
@@ -75,160 +106,183 @@
             left: 0;
             right: 0;
 
-            height: 72px;
+            height: 74px;
 
             display: flex;
             align-items: center;
 
             gap: 12px;
 
-            padding: 10px 14px;
+            padding:
+                max(10px, env(safe-area-inset-top))
+                14px
+                10px
+                14px;
 
             background:
-                rgba(9, 13, 19, 0.90);
+                rgba(7, 11, 16, .92);
 
             border-bottom:
-                1px solid rgba(255,255,255,0.08);
+                1px solid rgba(255,255,255,.08);
 
             backdrop-filter:
-                blur(16px);
+                blur(18px);
 
             -webkit-backdrop-filter:
-                blur(16px);
+                blur(18px);
 
             z-index: 100;
         }
 
-
         .logo {
-            flex-shrink: 0;
+            flex: 0 0 auto;
 
-            min-width: 130px;
+            min-width: 145px;
 
-            color: white;
+            color: #fff;
 
-            font-size: 20px;
-            font-weight: 900;
+            font-size: 21px;
+            line-height: 1;
 
-            letter-spacing: .5px;
+            font-weight: 950;
+
+            letter-spacing: .8px;
         }
-
 
         .logo span {
             display: block;
 
-            margin-top: 2px;
+            margin-top: 7px;
 
             color:
-                rgba(255,255,255,.42);
+                rgba(255,255,255,.40);
 
             font-size: 9px;
 
-            font-weight: 700;
+            font-weight: 800;
 
-            letter-spacing: 1.5px;
+            letter-spacing: 2.2px;
         }
 
-
         .stats {
-            display: flex;
+            min-width: 0;
 
+            display: flex;
             align-items: center;
 
             gap: 8px;
 
             overflow-x: auto;
+            overflow-y: hidden;
 
             scrollbar-width: none;
+
+            padding-right: 2px;
         }
 
         .stats::-webkit-scrollbar {
             display: none;
         }
 
-
         .stat {
-            flex-shrink: 0;
+            flex: 0 0 auto;
 
-            min-width: 108px;
+            min-width: 112px;
 
-            padding: 8px 12px;
+            padding:
+                9px 13px;
 
-            border-radius: 12px;
+            border-radius: 15px;
 
             background:
-                rgba(255,255,255,.055);
+                linear-gradient(
+                    180deg,
+                    rgba(255,255,255,.065),
+                    rgba(255,255,255,.035)
+                );
 
             border:
-                1px solid rgba(255,255,255,.06);
+                1px solid rgba(255,255,255,.075);
 
-            color: white;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,.035);
+
+            color: #fff;
         }
-
 
         .stat small {
             display: block;
 
-            margin-bottom: 3px;
+            margin-bottom: 4px;
 
             color:
-                rgba(255,255,255,.45);
+                rgba(255,255,255,.44);
 
-            font-size: 9px;
+            font-size: 10px;
 
-            font-weight: 700;
+            line-height: 1;
+
+            font-weight: 800;
+
+            letter-spacing: .6px;
         }
-
 
         .stat strong {
             display: block;
 
-            color: white;
+            color: #fff;
 
-            font-size: 14px;
+            font-size: 15px;
 
-            font-weight: 800;
+            line-height: 1.1;
+
+            font-weight: 900;
+
+            white-space: nowrap;
         }
 
-
-        /* =====================================================
+        /* =========================================================
            TOOL INDICATOR
-        ===================================================== */
+        ========================================================= */
 
         .tool-indicator {
             position: fixed;
 
-            top: 84px;
+            top: 88px;
             left: 14px;
 
-            padding: 8px 12px;
+            padding:
+                9px 13px;
 
-            border-radius: 11px;
+            border-radius: 12px;
 
             background:
-                rgba(10,15,22,.88);
+                rgba(8,13,19,.94);
 
             border:
-                1px solid rgba(255,255,255,.07);
+                1px solid rgba(255,255,255,.08);
 
-            color: white;
+            box-shadow:
+                0 12px 35px rgba(0,0,0,.25);
+
+            color: #fff;
 
             font-size: 11px;
-
-            font-weight: 700;
+            font-weight: 800;
 
             opacity: 0;
 
             transform:
                 translateY(-8px);
 
-            transition: .2s ease;
-
             pointer-events: none;
+
+            transition:
+                opacity .2s ease,
+                transform .2s ease;
 
             z-index: 150;
         }
-
 
         .tool-indicator.show {
             opacity: 1;
@@ -237,32 +291,32 @@
                 translateY(0);
         }
 
-
-        /* =====================================================
+        /* =========================================================
            NOTIFICATION
-        ===================================================== */
+        ========================================================= */
 
         .notification {
             position: fixed;
 
-            top: 84px;
+            top: 88px;
             right: 14px;
 
             width:
-                min(350px, calc(100vw - 28px));
+                min(360px, calc(100vw - 28px));
 
-            padding: 14px 16px;
+            padding:
+                15px 16px;
 
-            border-radius: 15px;
+            border-radius: 16px;
 
             background:
-                rgba(10,15,22,.95);
+                rgba(8,13,19,.96);
 
             border:
-                1px solid rgba(255,255,255,.08);
+                1px solid rgba(255,255,255,.09);
 
             box-shadow:
-                0 18px 50px rgba(0,0,0,.30);
+                0 20px 60px rgba(0,0,0,.35);
 
             backdrop-filter:
                 blur(18px);
@@ -277,11 +331,12 @@
 
             pointer-events: none;
 
-            transition: .25s ease;
+            transition:
+                opacity .25s ease,
+                transform .25s ease;
 
-            z-index: 400;
+            z-index: 500;
         }
-
 
         .notification.show {
             opacity: 1;
@@ -290,106 +345,102 @@
                 translateY(0);
         }
 
-
         .notification strong {
             display: block;
 
-            margin-bottom: 4px;
+            margin-bottom: 5px;
 
-            color: white;
+            color: #fff;
 
             font-size: 14px;
-        }
 
+            font-weight: 900;
+        }
 
         .notification div {
             color:
-                rgba(255,255,255,.62);
+                rgba(255,255,255,.60);
 
             font-size: 12px;
 
             line-height: 1.45;
         }
 
-
-        /* =====================================================
+        /* =========================================================
            BUILD MENU
-        ===================================================== */
+        ========================================================= */
 
         .build-menu {
             position: fixed;
 
             left: 50%;
-            bottom: 84px;
+            bottom: 86px;
 
             width:
-                min(720px, calc(100vw - 24px));
+                min(760px, calc(100vw - 24px));
 
             padding: 15px;
 
             background:
-                rgba(10,15,22,.96);
+                rgba(7,12,18,.97);
 
             border:
-                1px solid rgba(255,255,255,.08);
+                1px solid rgba(255,255,255,.09);
 
             border-radius: 20px;
 
             box-shadow:
-                0 22px 65px rgba(0,0,0,.38);
+                0 25px 80px rgba(0,0,0,.42);
 
             backdrop-filter:
-                blur(20px);
+                blur(22px);
 
             -webkit-backdrop-filter:
-                blur(20px);
-
-            transform:
-                translateX(-50%)
-                translateY(25px);
+                blur(22px);
 
             opacity: 0;
+            visibility: hidden;
+
+            transform:
+                translate(-50%, 18px)
+                scale(.97);
 
             pointer-events: none;
 
             transition:
-                opacity .25s ease,
-                transform .25s ease;
+                opacity .2s ease,
+                visibility .2s ease,
+                transform .2s ease;
 
-            z-index: 250;
+            z-index: 300;
         }
-
 
         .build-menu.open {
             opacity: 1;
-
-            pointer-events: auto;
+            visibility: visible;
 
             transform:
-                translateX(-50%)
-                translateY(0);
-        }
+                translate(-50%, 0)
+                scale(1);
 
+            pointer-events: auto;
+        }
 
         .build-header {
             display: flex;
-
             align-items: center;
-
             justify-content: space-between;
 
             margin-bottom: 12px;
         }
 
-
         .build-title {
-            color: white;
+            color: #fff;
 
             font-size: 15px;
 
-            font-weight: 800;
+            font-weight: 900;
         }
-
 
         .build-subtitle {
             margin-top: 3px;
@@ -398,290 +449,118 @@
                 rgba(255,255,255,.42);
 
             font-size: 10px;
+
+            font-weight: 700;
         }
 
-
-        .close-build {
-            width: 32px;
-            height: 32px;
-
-            border: 0;
+        .close-btn {
+            width: 34px;
+            height: 34px;
 
             border-radius: 10px;
 
             background:
-                rgba(255,255,255,.07);
+                rgba(255,255,255,.06);
 
-            color: white;
+            color:
+                rgba(255,255,255,.75);
 
             cursor: pointer;
         }
 
+        .close-btn:active {
+            transform: scale(.94);
+        }
 
         .build-grid {
             display: grid;
 
             grid-template-columns:
-                repeat(4, 1fr);
+                repeat(6, minmax(0, 1fr));
 
             gap: 8px;
+
+            max-height: 270px;
+
+            overflow-y: auto;
+
+            scrollbar-width: thin;
         }
 
-
         .build-item {
-            min-height: 76px;
+            min-height: 88px;
 
-            padding: 8px;
+            padding: 9px 7px;
 
-            border:
-                1px solid rgba(255,255,255,.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            gap: 4px;
 
             border-radius: 14px;
 
             background:
-                rgba(255,255,255,.055);
+                rgba(255,255,255,.045);
 
-            color: white;
+            border:
+                1px solid rgba(255,255,255,.055);
+
+            color: #fff;
 
             cursor: pointer;
 
-            transition: .15s ease;
+            transition:
+                transform .15s ease,
+                background .15s ease,
+                border-color .15s ease;
         }
-
 
         .build-item:hover {
             background:
-                rgba(255,255,255,.09);
+                rgba(255,255,255,.075);
         }
-
 
         .build-item:active {
-            transform:
-                scale(.95);
+            transform: scale(.95);
         }
-
 
         .build-item.selected {
             background:
                 rgba(255,255,255,.12);
 
             border-color:
-                rgba(255,255,255,.25);
-        }
-
-
-        .build-item .icon {
-            display: block;
-
-            margin-bottom: 5px;
-
-            font-size: 24px;
-        }
-
-
-        .build-item .name {
-            display: block;
-
-            font-size: 11px;
-
-            font-weight: 700;
-        }
-
-
-        .build-item .price {
-            display: block;
-
-            margin-top: 3px;
-
-            color:
-                rgba(255,255,255,.42);
-
-            font-size: 9px;
-        }
-
-
-        /* =====================================================
-           BUILDING INFO PANEL
-        ===================================================== */
-
-        .building-panel {
-            position: fixed;
-
-            top: 90px;
-            right: 14px;
-
-            width:
-                min(310px, calc(100vw - 28px));
-
-            padding: 16px;
-
-            background:
-                rgba(10,15,22,.96);
-
-            border:
-                1px solid rgba(255,255,255,.08);
-
-            border-radius: 18px;
+                rgba(255,255,255,.24);
 
             box-shadow:
-                0 20px 60px rgba(0,0,0,.35);
-
-            backdrop-filter:
-                blur(18px);
-
-            -webkit-backdrop-filter:
-                blur(18px);
-
-            transform:
-                translateX(30px);
-
-            opacity: 0;
-
-            pointer-events: none;
-
-            transition: .25s ease;
-
-            z-index: 300;
+                0 0 0 1px
+                rgba(255,255,255,.04)
+                inset;
         }
 
+        .build-item .icon {
+            font-size: 25px;
 
-        .building-panel.open {
-            opacity: 1;
-
-            transform:
-                translateX(0);
-
-            pointer-events: auto;
+            line-height: 1;
         }
 
-
-        .building-panel-header {
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 10px;
-
-            padding-bottom: 12px;
-
-            border-bottom:
-                1px solid rgba(255,255,255,.07);
-        }
-
-
-        .building-title {
-            display: flex;
-
-            align-items: center;
-
-            gap: 9px;
-        }
-
-
-        .building-icon {
-            width: 40px;
-            height: 40px;
-
-            display: grid;
-
-            place-items: center;
-
-            border-radius: 12px;
-
-            background:
-                rgba(255,255,255,.07);
-
-            font-size: 21px;
-        }
-
-
-        .building-title strong {
-            display: block;
-
-            color: white;
-
-            font-size: 14px;
-        }
-
-
-        .building-title small {
-            display: block;
-
-            margin-top: 2px;
+        .build-item .name {
+            max-width: 100%;
 
             color:
-                rgba(255,255,255,.42);
+                rgba(255,255,255,.78);
 
-            font-size: 10px;
+            font-size: 9px;
+
+            line-height: 1.15;
+
+            font-weight: 800;
+
+            text-align: center;
         }
 
-
-        .close-panel {
-            width: 30px;
-            height: 30px;
-
-            border: 0;
-
-            border-radius: 9px;
-
-            background:
-                rgba(255,255,255,.06);
-
-            color: white;
-
-            cursor: pointer;
-        }
-
-
-        .building-level {
-            margin-top: 14px;
-
-            padding: 10px 12px;
-
-            border-radius: 11px;
-
-            background:
-                rgba(255,255,255,.045);
-
-            color:
-                rgba(255,255,255,.68);
-
-            font-size: 11px;
-        }
-
-
-        .building-level strong {
-            color: white;
-        }
-
-
-        .building-info-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(2, 1fr);
-
-            gap: 7px;
-
-            margin-top: 10px;
-        }
-
-
-        .info-box {
-            padding: 9px;
-
-            border-radius: 11px;
-
-            background:
-                rgba(255,255,255,.045);
-        }
-
-
-        .info-box small {
-            display: block;
-
+        .build-item .price {
             color:
                 rgba(255,255,255,.38);
 
@@ -690,17 +569,180 @@
             font-weight: 700;
         }
 
+        /* =========================================================
+           BUILDING PANEL
+        ========================================================= */
 
-        .info-box strong {
-            display: block;
+        .building-panel {
+            position: fixed;
 
-            margin-top: 3px;
+            top: 92px;
+            right: 14px;
 
-            color: white;
+            width: 300px;
 
-            font-size: 12px;
+            padding: 16px;
+
+            background:
+                rgba(7,12,18,.96);
+
+            border:
+                1px solid rgba(255,255,255,.09);
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 25px 70px rgba(0,0,0,.38);
+
+            backdrop-filter:
+                blur(20px);
+
+            -webkit-backdrop-filter:
+                blur(20px);
+
+            opacity: 0;
+            visibility: hidden;
+
+            transform:
+                translateX(20px);
+
+            pointer-events: none;
+
+            transition:
+                opacity .22s ease,
+                visibility .22s ease,
+                transform .22s ease;
+
+            z-index: 350;
         }
 
+        .building-panel.open {
+            opacity: 1;
+            visibility: visible;
+
+            transform:
+                translateX(0);
+
+            pointer-events: auto;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            margin-bottom: 15px;
+        }
+
+        .building-icon {
+            width: 48px;
+            height: 48px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 14px;
+
+            background:
+                rgba(255,255,255,.065);
+
+            font-size: 25px;
+        }
+
+        .building-heading {
+            min-width: 0;
+            flex: 1;
+        }
+
+        #buildingName {
+            color: #fff;
+
+            font-size: 15px;
+
+            font-weight: 900;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #buildingType {
+            margin-top: 3px;
+
+            color:
+                rgba(255,255,255,.40);
+
+            font-size: 9px;
+
+            font-weight: 700;
+        }
+
+        .panel-level {
+            margin-bottom: 13px;
+
+            padding: 10px 12px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            color:
+                rgba(255,255,255,.55);
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+        .panel-level strong {
+            color: #fff;
+        }
+
+        .panel-stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 7px;
+
+            margin-bottom: 13px;
+        }
+
+        .panel-stat {
+            padding: 10px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            border:
+                1px solid rgba(255,255,255,.04);
+        }
+
+        .panel-stat small {
+            display: block;
+
+            margin-bottom: 4px;
+
+            color:
+                rgba(255,255,255,.38);
+
+            font-size: 8px;
+
+            font-weight: 800;
+        }
+
+        .panel-stat strong {
+            color: #fff;
+
+            font-size: 13px;
+
+            font-weight: 900;
+        }
 
         .panel-actions {
             display: grid;
@@ -709,49 +751,45 @@
                 1fr 1fr;
 
             gap: 8px;
-
-            margin-top: 13px;
         }
 
+        .panel-action {
+            min-height: 42px;
 
-        .panel-btn {
-            height: 42px;
+            border-radius: 12px;
 
-            border: 0;
-
-            border-radius: 11px;
-
-            background:
-                rgba(255,255,255,.08);
-
-            color: white;
+            color: #fff;
 
             font-size: 11px;
 
-            font-weight: 800;
+            font-weight: 900;
 
             cursor: pointer;
         }
 
-
-        .panel-btn:active {
-            transform:
-                scale(.97);
-        }
-
-
-        .panel-btn.danger {
+        #upgradeBuilding {
             background:
-                rgba(160,70,70,.20);
+                rgba(93,145,255,.18);
 
-            color:
-                #ffaaaa;
+            border:
+                1px solid rgba(93,145,255,.20);
         }
 
+        #demolishBuilding {
+            background:
+                rgba(220,80,80,.14);
 
-        /* =====================================================
-           CAMERA
-        ===================================================== */
+            border:
+                1px solid rgba(220,80,80,.18);
+        }
+
+        .panel-action:active {
+            transform: scale(.97);
+        }
+
+        /* =========================================================
+           CAMERA CONTROLS
+        ========================================================= */
 
         .camera-controls {
             position: fixed;
@@ -760,47 +798,51 @@
             bottom: 88px;
 
             display: flex;
-
             flex-direction: column;
 
-            gap: 7px;
+            gap: 8px;
 
-            z-index: 120;
+            z-index: 180;
         }
 
-
         .camera-btn {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 15px;
+
+            background:
+                rgba(7,12,18,.94);
 
             border:
                 1px solid rgba(255,255,255,.08);
 
-            border-radius: 12px;
+            color: #fff;
 
-            background:
-                rgba(10,14,20,.86);
-
-            color: white;
-
-            font-size: 19px;
+            font-size: 23px;
 
             cursor: pointer;
 
-            backdrop-filter:
-                blur(10px);
-        }
+            box-shadow:
+                0 10px 30px rgba(0,0,0,.22);
 
+            backdrop-filter:
+                blur(14px);
+
+            -webkit-backdrop-filter:
+                blur(14px);
+        }
 
         .camera-btn:active {
-            transform:
-                scale(.94);
+            transform: scale(.92);
         }
 
-
-        /* =====================================================
+        /* =========================================================
            SPEED
-        ===================================================== */
+        ========================================================= */
 
         .speed-control {
             position: fixed;
@@ -809,64 +851,66 @@
             bottom: 88px;
 
             display: flex;
-
             align-items: center;
 
-            gap: 5px;
+            gap: 3px;
 
             padding: 5px;
 
+            border-radius: 16px;
+
             background:
-                rgba(10,14,20,.86);
+                rgba(7,12,18,.94);
 
             border:
-                1px solid rgba(255,255,255,.07);
+                1px solid rgba(255,255,255,.08);
 
-            border-radius: 13px;
+            box-shadow:
+                0 10px 30px rgba(0,0,0,.22);
 
-            z-index: 120;
+            z-index: 180;
         }
 
-
         .speed-btn {
-            min-width: 38px;
+            min-width: 46px;
+            height: 40px;
 
-            height: 34px;
+            padding: 0 10px;
 
-            border: 0;
-
-            border-radius: 9px;
+            border-radius: 11px;
 
             background: transparent;
 
             color:
-                rgba(255,255,255,.55);
+                rgba(255,255,255,.50);
 
-            font-size: 11px;
+            font-size: 12px;
 
-            font-weight: 800;
+            font-weight: 900;
 
             cursor: pointer;
         }
-
 
         .speed-btn.active {
             background:
                 rgba(255,255,255,.10);
 
-            color: white;
+            color: #fff;
         }
 
+        .speed-btn:active {
+            transform: scale(.94);
+        }
 
-        /* =====================================================
-           TOOLBAR
-        ===================================================== */
+        /* =========================================================
+           BOTTOM TOOLBAR
+        ========================================================= */
 
         .toolbar {
             position: fixed;
 
             left: 50%;
-            bottom: 10px;
+            bottom: max(10px, env(safe-area-inset-bottom));
 
             transform:
                 translateX(-50%);
@@ -874,104 +918,120 @@
             width:
                 min(760px, calc(100vw - 20px));
 
-            height: 62px;
+            min-height: 68px;
 
             display: flex;
-
             align-items: center;
-
             justify-content: space-around;
 
             padding: 6px;
 
             background:
-                rgba(9,13,19,.95);
+                rgba(7,12,18,.96);
 
             border:
                 1px solid rgba(255,255,255,.08);
 
-            border-radius: 18px;
+            border-radius: 20px;
+
+            box-shadow:
+                0 20px 70px rgba(0,0,0,.38);
 
             backdrop-filter:
-                blur(18px);
+                blur(20px);
 
             -webkit-backdrop-filter:
-                blur(18px);
+                blur(20px);
 
-            z-index: 100;
+            z-index: 200;
         }
 
-
         .tool {
-            width: 60px;
-            height: 50px;
+            flex: 1;
 
-            border: 0;
+            max-width: 120px;
 
-            border-radius: 13px;
+            height: 56px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            gap: 3px;
+
+            border-radius: 15px;
 
             background: transparent;
 
-            color: white;
+            color: #fff;
 
             cursor: pointer;
 
-            transition: .15s ease;
+            transition:
+                background .15s ease,
+                transform .15s ease;
         }
-
 
         .tool:hover {
             background:
-                rgba(255,255,255,.06);
+                rgba(255,255,255,.055);
         }
-
-
-        .tool:active {
-            transform:
-                scale(.94);
-        }
-
 
         .tool.active {
             background:
                 rgba(255,255,255,.10);
         }
 
-
-        .tool-icon {
-            display: block;
-
-            margin-bottom: 3px;
-
-            font-size: 20px;
+        .tool:active {
+            transform: scale(.94);
         }
 
+        .tool-icon {
+            font-size: 22px;
+
+            line-height: 1;
+        }
 
         .tool-label {
-            display: block;
-
             color:
-                rgba(255,255,255,.52);
+                rgba(255,255,255,.50);
 
             font-size: 8px;
 
-            font-weight: 700;
+            line-height: 1;
+
+            font-weight: 900;
+
+            letter-spacing: .5px;
         }
 
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
 
-        /* =====================================================
-           MOBILE
-        ===================================================== */
+        @media (max-width: 900px) {
+
+            .build-grid {
+                grid-template-columns:
+                    repeat(5, minmax(0, 1fr));
+            }
+
+        }
 
         @media (max-width: 600px) {
 
             .topbar {
-                height: 64px;
+                height: 66px;
 
                 padding:
-                    8px 10px;
-            }
+                    max(7px, env(safe-area-inset-top))
+                    9px
+                    8px
+                    9px;
 
+                gap: 8px;
+            }
 
             .logo {
                 min-width: 92px;
@@ -979,165 +1039,248 @@
                 font-size: 16px;
             }
 
-
             .logo span {
+                margin-top: 5px;
+
                 font-size: 7px;
+
+                letter-spacing: 1.5px;
             }
 
-
             .stat {
-                min-width: 88px;
+                min-width: 96px;
 
                 padding:
                     7px 9px;
-            }
 
+                border-radius: 13px;
+            }
 
             .stat small {
                 font-size: 8px;
             }
 
-
             .stat strong {
                 font-size: 12px;
             }
 
-
-            .build-menu {
-                bottom: 78px;
-
-                padding: 12px;
+            .tool-indicator {
+                top: 76px;
+                left: 9px;
             }
 
+            .notification {
+                top: 76px;
+                right: 9px;
+
+                width:
+                    calc(100vw - 18px);
+            }
+
+            .build-menu {
+                bottom: 79px;
+
+                width:
+                    calc(100vw - 14px);
+
+                padding: 12px;
+
+                border-radius: 18px;
+            }
 
             .build-grid {
                 grid-template-columns:
                     repeat(4, 1fr);
 
                 gap: 6px;
+
+                max-height: 245px;
             }
 
-
             .build-item {
-                min-height: 65px;
+                min-height: 68px;
 
                 padding: 6px;
             }
 
-
             .build-item .icon {
-                font-size: 20px;
+                font-size: 21px;
             }
-
 
             .build-item .name {
-                font-size: 9px;
+                font-size: 8px;
             }
-
 
             .build-item .price {
                 display: none;
             }
 
-
             .building-panel {
                 top: auto;
 
-                right: 8px;
                 left: 8px;
+                right: 8px;
 
-                bottom: 75px;
+                bottom: 78px;
 
                 width: auto;
 
                 transform:
-                    translateY(25px);
+                    translateY(22px);
             }
-
 
             .building-panel.open {
                 transform:
                     translateY(0);
             }
 
-
             .camera-controls {
                 right: 9px;
-
-                bottom: 75px;
+                bottom: 80px;
             }
-
 
             .camera-btn {
-                width: 40px;
-                height: 40px;
-            }
+                width: 42px;
+                height: 42px;
 
+                border-radius: 13px;
+            }
 
             .speed-control {
                 left: 9px;
-
-                bottom: 75px;
+                bottom: 80px;
             }
-
 
             .speed-btn {
-                min-width: 34px;
-            }
+                min-width: 36px;
 
+                height: 38px;
+
+                padding: 0 7px;
+            }
 
             .toolbar {
                 width:
                     calc(100vw - 12px);
 
-                bottom: 6px;
+                min-height: 64px;
 
+                bottom:
+                    max(6px, env(safe-area-inset-bottom));
+
+                border-radius: 18px;
+            }
+
+            .tool {
+                height: 52px;
+            }
+
+            .tool-icon {
+                font-size: 20px;
+            }
+
+            .tool-label {
+                font-size: 7px;
+            }
+
+        }
+
+        @media (max-width: 380px) {
+
+            .logo {
+                min-width: 78px;
+
+                font-size: 14px;
+            }
+
+            .logo span {
+                font-size: 6px;
+            }
+
+            .stat {
+                min-width: 86px;
+            }
+
+            .stat strong {
+                font-size: 11px;
+            }
+
+            .tool-label {
+                font-size: 6px;
+            }
+
+        }
+
+        /* =========================================================
+           LANDSCAPE MOBILE
+        ========================================================= */
+
+        @media (
+            max-height: 500px
+        ) and (
+            orientation: landscape
+        ) {
+
+            .topbar {
                 height: 58px;
             }
 
+            .build-menu {
+                bottom: 67px;
+
+                max-height: 75vh;
+            }
+
+            .building-panel {
+                top: 66px;
+
+                bottom: auto;
+            }
+
+            .camera-controls,
+            .speed-control {
+                bottom: 67px;
+            }
+
+            .toolbar {
+                height: 56px;
+
+                min-height: 56px;
+            }
 
             .tool {
-                width: 50px;
+                height: 46px;
             }
 
-
-            .notification {
-                top: 72px;
-
-                right: 9px;
-
-                width:
-                    calc(100vw - 18px);
-            }
         }
 
     </style>
 </head>
 
-
 <body>
 
-    <!-- =====================================================
+    <!-- =========================================================
          GAME CANVAS
-    ====================================================== -->
+    ========================================================== -->
 
-    <canvas id="game"></canvas>
+    <canvas
+        id="game"
+        aria-label="MetroCity game world"
+    ></canvas>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
          TOP HUD
-    ====================================================== -->
+    ========================================================== -->
 
     <header class="topbar">
 
         <div class="logo">
-
             METROCITY
 
             <span>
                 CITY SIMULATOR • V5
             </span>
-
         </div>
 
 
@@ -1145,33 +1288,25 @@
 
             <div class="stat">
                 <small>💰 MONEY</small>
-                <strong id="money">
-                    $125,000
-                </strong>
+                <strong id="money">$125,000</strong>
             </div>
 
 
             <div class="stat">
                 <small>👥 POPULATION</small>
-                <strong id="population">
-                    1,250
-                </strong>
+                <strong id="population">1,250</strong>
             </div>
 
 
             <div class="stat">
                 <small>😊 HAPPINESS</small>
-                <strong id="happiness">
-                    82%
-                </strong>
+                <strong id="happiness">82%</strong>
             </div>
 
 
             <div class="stat">
                 <small>⚡ POWER</small>
-                <strong id="power">
-                    100%
-                </strong>
+                <strong id="power">100%</strong>
             </div>
 
         </div>
@@ -1179,9 +1314,9 @@
     </header>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
          TOOL INDICATOR
-    ====================================================== -->
+    ========================================================== -->
 
     <div
         id="toolIndicator"
@@ -1191,53 +1326,54 @@
     </div>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
          NOTIFICATION
-    ====================================================== -->
+    ========================================================== -->
 
     <div
         id="notification"
         class="notification"
+        role="status"
+        aria-live="polite"
     >
 
         <strong id="notificationTitle">
             MetroCity
         </strong>
 
-        <div id="notificationText">
-            Welcome to your city.
-        </div>
+        <div id="notificationText"></div>
 
     </div>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
          BUILD MENU
-    ====================================================== -->
+    ========================================================== -->
 
     <section
         id="buildMenu"
         class="build-menu"
+        aria-label="Build menu"
     >
 
         <div class="build-header">
 
             <div>
-
                 <div class="build-title">
-                    Construction
+                    Build
                 </div>
 
                 <div class="build-subtitle">
-                    Choose what you want to build
+                    Select infrastructure to place
                 </div>
-
             </div>
 
 
             <button
                 id="closeBuild"
-                class="close-build"
+                class="close-btn"
+                type="button"
+                aria-label="Close build menu"
             >
                 ✕
             </button>
@@ -1250,240 +1386,132 @@
             <button
                 class="build-item"
                 data-tool="road"
+                type="button"
             >
-
-                <span class="icon">
-                    🛣️
-                </span>
-
-                <span class="name">
-                    Road
-                </span>
-
-                <span class="price">
-                    $20/m
-                </span>
-
+                <span class="icon">🛣️</span>
+                <span class="name">Road</span>
+                <span class="price">Build road</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="house"
+                type="button"
             >
-
-                <span class="icon">
-                    🏠
-                </span>
-
-                <span class="name">
-                    Residential
-                </span>
-
-                <span class="price">
-                    $100
-                </span>
-
+                <span class="icon">🏠</span>
+                <span class="name">Residential</span>
+                <span class="price">$100</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="commercial"
+                type="button"
             >
-
-                <span class="icon">
-                    🏢
-                </span>
-
-                <span class="name">
-                    Commercial
-                </span>
-
-                <span class="price">
-                    $250
-                </span>
-
+                <span class="icon">🏢</span>
+                <span class="name">Commercial</span>
+                <span class="price">$250</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="industrial"
+                type="button"
             >
-
-                <span class="icon">
-                    🏭
-                </span>
-
-                <span class="name">
-                    Industrial
-                </span>
-
-                <span class="price">
-                    $350
-                </span>
-
+                <span class="icon">🏭</span>
+                <span class="name">Industrial</span>
+                <span class="price">$350</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="hospital"
+                type="button"
             >
-
-                <span class="icon">
-                    🏥
-                </span>
-
-                <span class="name">
-                    Hospital
-                </span>
-
-                <span class="price">
-                    $5,000
-                </span>
-
+                <span class="icon">🏥</span>
+                <span class="name">Hospital</span>
+                <span class="price">$5,000</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="police"
+                type="button"
             >
-
-                <span class="icon">
-                    🚓
-                </span>
-
-                <span class="name">
-                    Police
-                </span>
-
-                <span class="price">
-                    $3,500
-                </span>
-
+                <span class="icon">🚓</span>
+                <span class="name">Police</span>
+                <span class="price">$3,500</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="fire"
+                type="button"
             >
-
-                <span class="icon">
-                    🚒
-                </span>
-
-                <span class="name">
-                    Fire
-                </span>
-
-                <span class="price">
-                    $3,000
-                </span>
-
+                <span class="icon">🚒</span>
+                <span class="name">Fire Station</span>
+                <span class="price">$3,000</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="school"
+                type="button"
             >
-
-                <span class="icon">
-                    🏫
-                </span>
-
-                <span class="name">
-                    School
-                </span>
-
-                <span class="price">
-                    $4,000
-                </span>
-
+                <span class="icon">🏫</span>
+                <span class="name">School</span>
+                <span class="price">$4,000</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="park"
+                type="button"
             >
-
-                <span class="icon">
-                    🌳
-                </span>
-
-                <span class="name">
-                    Park
-                </span>
-
-                <span class="price">
-                    $500
-                </span>
-
+                <span class="icon">🌳</span>
+                <span class="name">Park</span>
+                <span class="price">$500</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="power"
+                type="button"
             >
-
-                <span class="icon">
-                    ⚡
-                </span>
-
-                <span class="name">
-                    Power
-                </span>
-
-                <span class="price">
-                    $2,000
-                </span>
-
+                <span class="icon">⚡</span>
+                <span class="name">Power Plant</span>
+                <span class="price">$2,000</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="water"
+                type="button"
             >
-
-                <span class="icon">
-                    💧
-                </span>
-
-                <span class="name">
-                    Water
-                </span>
-
-                <span class="price">
-                    $1,500
-                </span>
-
+                <span class="icon">💧</span>
+                <span class="name">Water Plant</span>
+                <span class="price">$1,500</span>
             </button>
 
 
             <button
                 class="build-item"
                 data-tool="stadium"
+                type="button"
             >
-
-                <span class="icon">
-                    🏟️
-                </span>
-
-                <span class="name">
-                    Stadium
-                </span>
-
-                <span class="price">
-                    $12,000
-                </span>
-
+                <span class="icon">🏟️</span>
+                <span class="name">Stadium</span>
+                <span class="price">$12,000</span>
             </button>
 
         </div>
@@ -1491,37 +1519,34 @@
     </section>
 
 
-    <!-- =====================================================
-         BUILDING PANEL
-    ====================================================== -->
+    <!-- =========================================================
+         BUILDING DETAILS PANEL
+    ========================================================== -->
 
-    <section
+    <aside
         id="buildingPanel"
         class="building-panel"
+        aria-label="Building details"
     >
 
-        <div class="building-panel-header">
+        <div class="panel-header">
 
-            <div class="building-title">
+            <div
+                id="buildingIcon"
+                class="building-icon"
+            >
+                🏢
+            </div>
 
-                <div
-                    id="buildingIcon"
-                    class="building-icon"
-                >
-                    🏠
+
+            <div class="building-heading">
+
+                <div id="buildingName">
+                    Building
                 </div>
 
-
-                <div>
-
-                    <strong id="buildingName">
-                        Residential
-                    </strong>
-
-                    <small id="buildingType">
-                        Building
-                    </small>
-
+                <div id="buildingType">
+                    City Infrastructure
                 </div>
 
             </div>
@@ -1529,7 +1554,9 @@
 
             <button
                 id="closePanel"
-                class="close-panel"
+                class="close-btn"
+                type="button"
+                aria-label="Close building panel"
             >
                 ✕
             </button>
@@ -1539,66 +1566,35 @@
 
         <div
             id="buildingLevel"
-            class="building-level"
+            class="panel-level"
         >
-            Level
-            <strong>
-                1
-            </strong>
+            Level <strong>1</strong>
         </div>
 
 
-        <div class="building-info-grid">
+        <div class="panel-stats">
 
-            <div class="info-box">
-
-                <small>
-                    POPULATION
-                </small>
-
-                <strong id="panelPopulation">
-                    0
-                </strong>
-
+            <div class="panel-stat">
+                <small>POPULATION</small>
+                <strong id="panelPopulation">0</strong>
             </div>
 
 
-            <div class="info-box">
-
-                <small>
-                    WORKERS
-                </small>
-
-                <strong id="panelWorkers">
-                    0
-                </strong>
-
+            <div class="panel-stat">
+                <small>WORKERS</small>
+                <strong id="panelWorkers">0</strong>
             </div>
 
 
-            <div class="info-box">
-
-                <small>
-                    HAPPINESS
-                </small>
-
-                <strong id="panelHappiness">
-                    +0
-                </strong>
-
+            <div class="panel-stat">
+                <small>HAPPINESS</small>
+                <strong id="panelHappiness">+0</strong>
             </div>
 
 
-            <div class="info-box">
-
-                <small>
-                    SERVICE
-                </small>
-
-                <strong id="panelService">
-                    0
-                </strong>
-
+            <div class="panel-stat">
+                <small>SERVICE</small>
+                <strong id="panelService">—</strong>
             </div>
 
         </div>
@@ -1608,7 +1604,8 @@
 
             <button
                 id="upgradeBuilding"
-                class="panel-btn"
+                class="panel-action"
+                type="button"
             >
                 ⬆ Upgrade
             </button>
@@ -1616,25 +1613,31 @@
 
             <button
                 id="demolishBuilding"
-                class="panel-btn danger"
+                class="panel-action"
+                type="button"
             >
                 🗑 Demolish
             </button>
 
         </div>
 
-    </section>
+    </aside>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
          CAMERA CONTROLS
-    ====================================================== -->
+    ========================================================== -->
 
-    <div class="camera-controls">
+    <div
+        class="camera-controls"
+        aria-label="Camera controls"
+    >
 
         <button
             id="zoomIn"
             class="camera-btn"
+            type="button"
+            aria-label="Zoom in"
         >
             +
         </button>
@@ -1643,6 +1646,8 @@
         <button
             id="resetCamera"
             class="camera-btn"
+            type="button"
+            aria-label="Reset camera"
         >
             ◎
         </button>
@@ -1651,6 +1656,8 @@
         <button
             id="zoomOut"
             class="camera-btn"
+            type="button"
+            aria-label="Zoom out"
         >
             −
         </button>
@@ -1658,15 +1665,19 @@
     </div>
 
 
-    <!-- =====================================================
-         SPEED
-    ====================================================== -->
+    <!-- =========================================================
+         SIMULATION SPEED
+    ========================================================== -->
 
-    <div class="speed-control">
+    <div
+        class="speed-control"
+        aria-label="Simulation speed"
+    >
 
         <button
             class="speed-btn active"
             data-speed="1"
+            type="button"
         >
             1×
         </button>
@@ -1675,6 +1686,7 @@
         <button
             class="speed-btn"
             data-speed="2"
+            type="button"
         >
             2×
         </button>
@@ -1683,6 +1695,7 @@
         <button
             class="speed-btn"
             data-speed="4"
+            type="button"
         >
             4×
         </button>
@@ -1691,6 +1704,7 @@
         <button
             class="speed-btn"
             data-speed="8"
+            type="button"
         >
             8×
         </button>
@@ -1698,15 +1712,19 @@
     </div>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
          BOTTOM TOOLBAR
-    ====================================================== -->
+    ========================================================== -->
 
-    <nav class="toolbar">
+    <nav
+        class="toolbar"
+        aria-label="Main navigation"
+    >
 
         <button
             class="tool active"
             id="buildButton"
+            type="button"
         >
 
             <span class="tool-icon">
@@ -1723,6 +1741,7 @@
         <button
             class="tool"
             id="mapButton"
+            type="button"
         >
 
             <span class="tool-icon">
@@ -1739,6 +1758,7 @@
         <button
             class="tool"
             id="cityButton"
+            type="button"
         >
 
             <span class="tool-icon">
@@ -1755,6 +1775,7 @@
         <button
             class="tool"
             id="statsButton"
+            type="button"
         >
 
             <span class="tool-icon">
@@ -1771,6 +1792,7 @@
         <button
             class="tool"
             id="settingsButton"
+            type="button"
         >
 
             <span class="tool-icon">
@@ -1786,1740 +1808,17 @@
     </nav>
 
 
-    <!-- =====================================================
-         GAME ENGINE
-    ====================================================== -->
-
-    <script type="module">
-
-        import {
-            RoadEngine
-        } from "./RoadEngine.js";
-
-
-        import {
-            BuildingEngine
-        } from "./BuildingEngine.js";
-
-
-        /* =====================================================
-           CANVAS
-        ===================================================== */
-
-        const canvas =
-            document.getElementById("game");
-
-        const ctx =
-            canvas.getContext("2d");
-
-
-        let width =
-            window.innerWidth;
-
-        let height =
-            window.innerHeight;
-
-
-        function resizeCanvas() {
-
-            width =
-                window.innerWidth;
-
-            height =
-                window.innerHeight;
-
-
-            const dpr =
-                Math.min(
-                    window.devicePixelRatio || 1,
-                    2
-                );
-
-
-            canvas.width =
-                width * dpr;
-
-            canvas.height =
-                height * dpr;
-
-
-            canvas.style.width =
-                width + "px";
-
-            canvas.style.height =
-                height + "px";
-
-
-            ctx.setTransform(
-                dpr,
-                0,
-                0,
-                dpr,
-                0,
-                0
-            );
-        }
-
-
-        window.addEventListener(
-            "resize",
-            resizeCanvas
-        );
-
-
-        resizeCanvas();
-
-
-        /* =====================================================
-           CITY
-        ===================================================== */
-
-        const city = {
-
-            money: 125000,
-
-            population: 1250,
-
-            happiness: 82,
-
-            power: 100,
-
-            currentTool: null,
-
-            roads: [],
-
-            buildings: [],
-
-            intersections: []
-
-        };
-
-
-        /* =====================================================
-           CAMERA
-        ===================================================== */
-
-        const camera = {
-
-            x: 0,
-
-            y: 0,
-
-            zoom: 1,
-
-            targetZoom: 1,
-
-            minZoom: .45,
-
-            maxZoom: 3
-
-        };
-
-
-        /* =====================================================
-           WORLD
-        ===================================================== */
-
-        const world = {
-
-            size: 2400
-
-        };
-
-
-        /* =====================================================
-           ENGINES
-        ===================================================== */
-
-        const roadEngine =
-            new RoadEngine(
-                canvas,
-                city,
-                camera
-            );
-
-
-        const buildingEngine =
-            new BuildingEngine(
-                city,
-                camera,
-                canvas
-            );
-
-
-        /* =====================================================
-           BUILD MENU
-        ===================================================== */
-
-        const buildMenu =
-            document.getElementById(
-                "buildMenu"
-            );
-
-
-        document
-            .getElementById("buildButton")
-            .addEventListener(
-                "click",
-                () => {
-
-                    buildMenu.classList.toggle(
-                        "open"
-                    );
-
-                }
-            );
-
-
-        document
-            .getElementById("closeBuild")
-            .addEventListener(
-                "click",
-                () => {
-
-                    buildMenu.classList.remove(
-                        "open"
-                    );
-
-                }
-            );
-
-
-        /* =====================================================
-           BUILD TOOL SELECT
-        ===================================================== */
-
-        document
-            .querySelectorAll(".build-item")
-            .forEach(
-                button => {
-
-                    button.addEventListener(
-                        "click",
-                        () => {
-
-                            const tool =
-                                button.dataset.tool;
-
-
-                            city.currentTool =
-                                tool;
-
-
-                            document
-                                .querySelectorAll(
-                                    ".build-item"
-                                )
-                                .forEach(
-                                    item => {
-
-                                        item.classList
-                                            .remove(
-                                                "selected"
-                                            );
-
-                                    }
-                                );
-
-
-                            button.classList.add(
-                                "selected"
-                            );
-
-
-                            buildMenu.classList.remove(
-                                "open"
-                            );
-
-
-                            updateToolIndicator(
-                                tool
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-
-        /* =====================================================
-           TOOL INDICATOR
-        ===================================================== */
-
-        function updateToolIndicator(
-            tool
-        ) {
-
-            const indicator =
-                document.getElementById(
-                    "toolIndicator"
-                );
-
-
-            if (!tool) {
-
-                indicator.classList.remove(
-                    "show"
-                );
-
-                return;
-            }
-
-
-            indicator.textContent =
-                "Tool: " +
-                formatToolName(
-                    tool
-                );
-
-
-            indicator.classList.add(
-                "show"
-            );
-        }
-
-
-        function formatToolName(
-            tool
-        ) {
-
-            return tool
-                .charAt(0)
-                .toUpperCase()
-                +
-                tool
-                    .slice(1)
-                    .replace(
-                        /_/g,
-                        " "
-                    );
-        }
-
-
-        /* =====================================================
-           CAMERA
-        ===================================================== */
-
-        document
-            .getElementById("zoomIn")
-            .addEventListener(
-                "click",
-                () => {
-
-                    camera.targetZoom =
-                        Math.min(
-                            camera.targetZoom *
-                            1.25,
-
-                            camera.maxZoom
-                        );
-
-                }
-            );
-
-
-        document
-            .getElementById("zoomOut")
-            .addEventListener(
-                "click",
-                () => {
-
-                    camera.targetZoom =
-                        Math.max(
-                            camera.targetZoom /
-                            1.25,
-
-                            camera.minZoom
-                        );
-
-                }
-            );
-
-
-        document
-            .getElementById("resetCamera")
-            .addEventListener(
-                "click",
-                () => {
-
-                    camera.x = 0;
-
-                    camera.y = 0;
-
-                    camera.targetZoom = 1;
-
-                }
-            );
-
-
-        /* =====================================================
-           CAMERA DRAG
-        ===================================================== */
-
-        let cameraPointer = null;
-
-
-        canvas.addEventListener(
-            "pointerdown",
-            event => {
-
-                if (
-                    city.currentTool ===
-                    "road"
-                ) {
-
-                    return;
-                }
-
-
-                if (
-                    city.currentTool
-                ) {
-
-                    return;
-                }
-
-
-                cameraPointer = {
-
-                    id:
-                        event.pointerId,
-
-                    x:
-                        event.clientX,
-
-                    y:
-                        event.clientY
-
-                };
-
-
-                canvas.setPointerCapture(
-                    event.pointerId
-                );
-
-            }
-        );
-
-
-        canvas.addEventListener(
-            "pointermove",
-            event => {
-
-                if (!cameraPointer)
-                    return;
-
-
-                if (
-                    event.pointerId !==
-                    cameraPointer.id
-                ) {
-
-                    return;
-                }
-
-
-                const dx =
-                    event.clientX -
-                    cameraPointer.x;
-
-
-                const dy =
-                    event.clientY -
-                    cameraPointer.y;
-
-
-                camera.x += dx;
-
-                camera.y += dy;
-
-
-                cameraPointer.x =
-                    event.clientX;
-
-                cameraPointer.y =
-                    event.clientY;
-
-            }
-        );
-
-
-        function stopCameraDrag() {
-
-            cameraPointer = null;
-
-        }
-
-
-        canvas.addEventListener(
-            "pointerup",
-            stopCameraDrag
-        );
-
-
-        canvas.addEventListener(
-            "pointercancel",
-            stopCameraDrag
-        );
-
-
-        /* =====================================================
-           BUILDING SELECT
-        ===================================================== */
-
-        canvas.addEventListener(
-            "click",
-            event => {
-
-                if (
-                    city.currentTool
-                ) {
-
-                    return;
-                }
-
-
-                const rect =
-                    canvas.getBoundingClientRect();
-
-
-                const screenX =
-                    event.clientX -
-                    rect.left;
-
-
-                const screenY =
-                    event.clientY -
-                    rect.top;
-
-
-                const worldPoint =
-                    screenToWorld(
-                        screenX,
-                        screenY
-                    );
-
-
-                const building =
-                    buildingEngine.findBuildingAt(
-                        worldPoint.x,
-                        worldPoint.y
-                    );
-
-
-                if (building) {
-
-                    buildingEngine.selectBuilding(
-                        building
-                    );
-
-                    openBuildingPanel(
-                        building
-                    );
-
-                }
-
-            }
-        );
-
-
-        function screenToWorld(
-            screenX,
-            screenY
-        ) {
-
-            return {
-
-                x:
-                    (
-                        screenX -
-                        width / 2 -
-                        camera.x
-                    ) /
-                    camera.zoom,
-
-                y:
-                    (
-                        screenY -
-                        height / 2 -
-                        camera.y
-                    ) /
-                    camera.zoom
-
-            };
-        }
-
-
-        /* =====================================================
-           BUILDING PANEL
-        ===================================================== */
-
-        let selectedBuilding = null;
-
-
-        function openBuildingPanel(
-            building
-        ) {
-
-            selectedBuilding =
-                building;
-
-
-            const data =
-                BuildingEngine.TYPES[
-                    building.type
-                ];
-
-
-            if (!data)
-                return;
-
-
-            document.getElementById(
-                "buildingIcon"
-            ).textContent =
-                data.icon;
-
-
-            document.getElementById(
-                "buildingName"
-            ).textContent =
-                data.name;
-
-
-            document.getElementById(
-                "buildingType"
-            ).textContent =
-                "City Infrastructure";
-
-
-            document.getElementById(
-                "buildingLevel"
-            ).innerHTML =
-                `Level <strong>${building.level}</strong>`;
-
-
-            document.getElementById(
-                "panelPopulation"
-            ).textContent =
-                Number(
-                    building.population || 0
-                ).toLocaleString();
-
-
-            document.getElementById(
-                "panelWorkers"
-            ).textContent =
-                Number(
-                    building.workers || 0
-                ).toLocaleString();
-
-
-            const happiness =
-                building.happiness || 0;
-
-
-            document.getElementById(
-                "panelHappiness"
-            ).textContent =
-                happiness >= 0
-                    ? "+" + happiness
-                    : happiness;
-
-
-            const service =
-                buildingEngine.getServiceCoverage(
-                    building
-                );
-
-
-            document.getElementById(
-                "panelService"
-            ).textContent =
-                service > 0
-                    ? service.toLocaleString()
-                    : "—";
-
-
-            document
-                .getElementById(
-                    "buildingPanel"
-                )
-                .classList.add(
-                    "open"
-                );
-        }
-
-
-        document
-            .getElementById("closePanel")
-            .addEventListener(
-                "click",
-                () => {
-
-                    closeBuildingPanel();
-
-                }
-            );
-
-
-        function closeBuildingPanel() {
-
-            selectedBuilding = null;
-
-            buildingEngine.selectedBuilding =
-                null;
-
-
-            document
-                .getElementById(
-                    "buildingPanel"
-                )
-                .classList.remove(
-                    "open"
-                );
-        }
-
-
-        /* =====================================================
-           UPGRADE
-        ===================================================== */
-
-        document
-            .getElementById(
-                "upgradeBuilding"
-            )
-            .addEventListener(
-                "click",
-                () => {
-
-                    if (
-                        !selectedBuilding
-                    ) {
-
-                        return;
-                    }
-
-
-                    const success =
-                        buildingEngine.upgradeBuilding(
-                            selectedBuilding
-                        );
-
-
-                    if (success) {
-
-                        updateHUD();
-
-                        openBuildingPanel(
-                            selectedBuilding
-                        );
-
-                    }
-
-                }
-            );
-
-
-        /* =====================================================
-           DEMOLISH
-        ===================================================== */
-
-        document
-            .getElementById(
-                "demolishBuilding"
-            )
-            .addEventListener(
-                "click",
-                () => {
-
-                    if (
-                        !selectedBuilding
-                    ) {
-
-                        return;
-                    }
-
-
-                    const confirmed =
-                        window.confirm(
-                            "Demolish this building?"
-                        );
-
-
-                    if (!confirmed)
-                        return;
-
-
-                    buildingEngine.demolishBuilding(
-                        selectedBuilding
-                    );
-
-
-                    closeBuildingPanel();
-
-                    updateHUD();
-
-                }
-            );
-
-
-        /* =====================================================
-           HUD
-        ===================================================== */
-
-        function updateHUD() {
-
-            document.getElementById(
-                "money"
-            ).textContent =
-                "$" +
-                Math.max(
-                    0,
-                    Math.floor(
-                        city.money
-                    )
-                ).toLocaleString();
-
-
-            document.getElementById(
-                "population"
-            ).textContent =
-                Math.floor(
-                    city.population
-                ).toLocaleString();
-
-
-            document.getElementById(
-                "happiness"
-            ).textContent =
-                Math.round(
-                    city.happiness
-                ) +
-                "%";
-
-
-            document.getElementById(
-                "power"
-            ).textContent =
-                Math.round(
-                    city.power
-                ) +
-                "%";
-
-        }
-
-
-        /* =====================================================
-           NOTIFICATION
-        ===================================================== */
-
-        let notificationTimer = null;
-
-
-        function showNotification(
-            title,
-            text
-        ) {
-
-            const box =
-                document.getElementById(
-                    "notification"
-                );
-
-
-            document.getElementById(
-                "notificationTitle"
-            ).textContent =
-                title;
-
-
-            document.getElementById(
-                "notificationText"
-            ).textContent =
-                text;
-
-
-            box.classList.add(
-                "show"
-            );
-
-
-            clearTimeout(
-                notificationTimer
-            );
-
-
-            notificationTimer =
-                setTimeout(
-                    () => {
-
-                        box.classList.remove(
-                            "show"
-                        );
-
-                    },
-                    2800
-                );
-        }
-
-
-        /* =====================================================
-           ENGINE NOTIFICATIONS
-        ===================================================== */
-
-        window.addEventListener(
-            "metrocity:notification",
-            event => {
-
-                const detail =
-                    event.detail || {};
-
-
-                showNotification(
-                    detail.title ||
-                        "MetroCity",
-
-                    detail.text ||
-                        ""
-                );
-
-            }
-        );
-
-
-        /* =====================================================
-           BUILDING EVENTS
-        ===================================================== */
-
-        window.addEventListener(
-            "metrocity:buildingCreated",
-            () => {
-
-                updateHUD();
-
-            }
-        );
-
-
-        window.addEventListener(
-            "metrocity:buildingUpgraded",
-            event => {
-
-                updateHUD();
-
-
-                if (
-                    selectedBuilding &&
-                    event.detail &&
-                    event.detail.id ===
-                        selectedBuilding.id
-                ) {
-
-                    openBuildingPanel(
-                        selectedBuilding
-                    );
-
-                }
-
-            }
-        );
-
-
-        window.addEventListener(
-            "metrocity:buildingDemolished",
-            () => {
-
-                updateHUD();
-
-            }
-        );
-
-
-        window.addEventListener(
-            "metrocity:roadCreated",
-            () => {
-
-                updateHUD();
-
-            }
-        );
-
-
-        /* =====================================================
-           SPEED
-        ===================================================== */
-
-        document
-            .querySelectorAll(
-                ".speed-btn"
-            )
-            .forEach(
-                button => {
-
-                    button.addEventListener(
-                        "click",
-                        () => {
-
-                            document
-                                .querySelectorAll(
-                                    ".speed-btn"
-                                )
-                                .forEach(
-                                    item => {
-
-                                        item.classList
-                                            .remove(
-                                                "active"
-                                            );
-
-                                    }
-                                );
-
-
-                            button.classList.add(
-                                "active"
-                            );
-
-
-                            window.metroCitySpeed =
-                                Number(
-                                    button.dataset.speed
-                                );
-
-
-                            showNotification(
-                                "Simulation Speed",
-                                `${button.dataset.speed}× speed enabled.`
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-
-        window.metroCitySpeed = 1;
-
-
-        /* =====================================================
-           OTHER BUTTONS
-        ===================================================== */
-
-        document
-            .getElementById("mapButton")
-            .addEventListener(
-                "click",
-                () => {
-
-                    showNotification(
-                        "Map",
-                        "Map management is ready for the next module."
-                    );
-
-                }
-            );
-
-
-        document
-            .getElementById("cityButton")
-            .addEventListener(
-                "click",
-                () => {
-
-                    showNotification(
-                        "City Overview",
-                        `${city.buildings.length} buildings • ${city.roads.length} roads`
-                    );
-
-                }
-            );
-
-
-        document
-            .getElementById("statsButton")
-            .addEventListener(
-                "click",
-                () => {
-
-                    showNotification(
-                        "City Statistics",
-                        `Population: ${city.population.toLocaleString()}`
-                    );
-
-                }
-            );
-
-
-        document
-            .getElementById("settingsButton")
-            .addEventListener(
-                "click",
-                () => {
-
-                    showNotification(
-                        "Settings",
-                        "Advanced settings module coming next."
-                    );
-
-                }
-            );
-
-
-        /* =====================================================
-           DRAW GROUND
-        ===================================================== */
-
-        function drawGround() {
-
-            ctx.fillStyle =
-                "#293c2f";
-
-
-            ctx.fillRect(
-                -world.size / 2,
-                -world.size / 2,
-                world.size,
-                world.size
-            );
-
-        }
-
-
-        /* =====================================================
-           DRAW GRID
-        ===================================================== */
-
-        function drawGrid() {
-
-            const gridSize = 100;
-
-            const range = 1200;
-
-
-            ctx.strokeStyle =
-                "rgba(255,255,255,.035)";
-
-            ctx.lineWidth = 1;
-
-
-            for (
-                let x = -range;
-                x <= range;
-                x += gridSize
-            ) {
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    x,
-                    -range
-                );
-
-                ctx.lineTo(
-                    x,
-                    range
-                );
-
-                ctx.stroke();
-
-            }
-
-
-            for (
-                let y = -range;
-                y <= range;
-                y += gridSize
-            ) {
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    -range,
-                    y
-                );
-
-                ctx.lineTo(
-                    range,
-                    y
-                );
-
-                ctx.stroke();
-
-            }
-
-        }
-
-
-        /* =====================================================
-           DRAW ROADS
-        ===================================================== */
-
-        function drawRoads() {
-
-            ctx.lineCap =
-                "round";
-
-            ctx.lineJoin =
-                "round";
-
-
-            for (
-                const road
-                of city.roads
-            ) {
-
-                ctx.strokeStyle =
-                    "#15191d";
-
-                ctx.lineWidth =
-                    38;
-
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    road.x1,
-                    road.y1
-                );
-
-                ctx.lineTo(
-                    road.x2,
-                    road.y2
-                );
-
-                ctx.stroke();
-
-
-                ctx.strokeStyle =
-                    "#535960";
-
-                ctx.lineWidth =
-                    28;
-
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    road.x1,
-                    road.y1
-                );
-
-                ctx.lineTo(
-                    road.x2,
-                    road.y2
-                );
-
-                ctx.stroke();
-
-
-                ctx.strokeStyle =
-                    "rgba(255,255,255,.50)";
-
-                ctx.lineWidth = 2;
-
-                ctx.setLineDash([
-                    10,
-                    10
-                ]);
-
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    road.x1,
-                    road.y1
-                );
-
-                ctx.lineTo(
-                    road.x2,
-                    road.y2
-                );
-
-                ctx.stroke();
-
-
-                ctx.setLineDash([]);
-
-            }
-
-
-            for (
-                const intersection
-                of city.intersections || []
-            ) {
-
-                ctx.fillStyle =
-                    "#666c72";
-
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    intersection.x,
-                    intersection.y,
-                    15,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.fill();
-
-            }
-
-        }
-
-
-        /* =====================================================
-           DRAW BUILDINGS
-        ===================================================== */
-
-        function drawBuildings() {
-
-            for (
-                const building
-                of city.buildings
-            ) {
-
-                const data =
-                    BuildingEngine.TYPES[
-                        building.type
-                    ];
-
-
-                if (!data)
-                    continue;
-
-
-                ctx.save();
-
-
-                ctx.translate(
-                    building.x,
-                    building.y
-                );
-
-
-                /*
-                 * Shadow
-                 */
-
-                ctx.fillStyle =
-                    "rgba(0,0,0,.25)";
-
-
-                ctx.fillRect(
-
-                    -building.size / 2 + 6,
-
-                    -building.size / 2 + 7,
-
-                    building.size,
-
-                    building.size
-
-                );
-
-
-                /*
-                 * Building
-                 */
-
-                ctx.fillStyle =
-                    data.color;
-
-
-                ctx.fillRect(
-
-                    -building.size / 2,
-
-                    -building.size / 2,
-
-                    building.size,
-
-                    building.size
-
-                );
-
-
-                /*
-                 * Roof
-                 */
-
-                ctx.fillStyle =
-                    "rgba(0,0,0,.20)";
-
-
-                ctx.fillRect(
-
-                    -building.size / 2,
-
-                    -building.size / 2,
-
-                    building.size,
-
-                    7
-
-                );
-
-
-                /*
-                 * Windows
-                 */
-
-                if (
-                    building.type !==
-                    "park"
-                ) {
-
-                    ctx.fillStyle =
-                        "rgba(255,255,255,.38)";
-
-
-                    const spacing = 12;
-
-                    const windowSize = 4;
-
-
-                    for (
-                        let wx =
-                            -building.size / 2 + 9;
-
-                        wx <
-                            building.size / 2 - 4;
-
-                        wx += spacing
-                    ) {
-
-                        for (
-                            let wy =
-                                -building.size / 2 + 15;
-
-                            wy <
-                                building.size / 2 - 4;
-
-                            wy += spacing
-                        ) {
-
-                            ctx.fillRect(
-                                wx,
-                                wy,
-                                windowSize,
-                                windowSize
-                            );
-
-                        }
-
-                    }
-
-                }
-
-
-                /*
-                 * Park trees
-                 */
-
-                if (
-                    building.type ===
-                    "park"
-                ) {
-
-                    ctx.fillStyle =
-                        "#78925d";
-
-
-                    for (
-                        let i = 0;
-                        i < 5;
-                        i++
-                    ) {
-
-                        const angle =
-                            (
-                                i / 5
-                            ) *
-                            Math.PI *
-                            2;
-
-
-                        const radius =
-                            building.size *
-                            .24;
-
-
-                        ctx.beginPath();
-
-                        ctx.arc(
-
-                            Math.cos(angle) *
-                                radius,
-
-                            Math.sin(angle) *
-                                radius,
-
-                            5,
-
-                            0,
-                            Math.PI * 2
-
-                        );
-
-                        ctx.fill();
-
-                    }
-
-                }
-
-
-                /*
-                 * Building icon
-                 */
-
-                ctx.textAlign =
-                    "center";
-
-                ctx.textBaseline =
-                    "middle";
-
-                ctx.font =
-                    `${Math.max(
-                        14,
-                        building.size * .30
-                    )}px Arial`;
-
-
-                ctx.fillText(
-                    data.icon,
-                    0,
-                    0
-                );
-
-
-                /*
-                 * Level
-                 */
-
-                if (
-                    building.level > 1
-                ) {
-
-                    ctx.fillStyle =
-                        "rgba(10,10,10,.75)";
-
-
-                    ctx.beginPath();
-
-                    ctx.roundRect(
-                        building.size / 2 - 19,
-                        -building.size / 2 - 8,
-                        28,
-                        15,
-                        5
-                    );
-
-                    ctx.fill();
-
-
-                    ctx.fillStyle =
-                        "white";
-
-
-                    ctx.font =
-                        "bold 8px Arial";
-
-
-                    ctx.fillText(
-                        "LV " +
-                        building.level,
-
-                        building.size / 2 - 5,
-
-                        -building.size / 2
-                    );
-
-                }
-
-
-                ctx.restore();
-
-            }
-
-        }
-
-
-        /* =====================================================
-           DRAW LOOP
-        ===================================================== */
-
-        function draw() {
-
-            ctx.clearRect(
-                0,
-                0,
-                width,
-                height
-            );
-
-
-            ctx.fillStyle =
-                "#101820";
-
-
-            ctx.fillRect(
-                0,
-                0,
-                width,
-                height
-            );
-
-
-            ctx.save();
-
-
-            ctx.translate(
-                width / 2 +
-                camera.x,
-
-                height / 2 +
-                camera.y
-            );
-
-
-            ctx.scale(
-                camera.zoom,
-                camera.zoom
-            );
-
-
-            drawGround();
-
-            drawGrid();
-
-            drawRoads();
-
-            drawBuildings();
-
-
-            /*
-             * Building preview
-             */
-
-            buildingEngine.drawPreview(
-                ctx
-            );
-
-
-            /*
-             * Road preview
-             */
-
-            if (
-                roadEngine &&
-                typeof roadEngine.drawPreview ===
-                    "function"
-            ) {
-
-                roadEngine.drawPreview(
-                    ctx
-                );
-
-            }
-
-
-            /*
-             * Selected building
-             */
-
-            if (
-                buildingEngine.selectedBuilding
-            ) {
-
-                const building =
-                    buildingEngine.selectedBuilding;
-
-
-                ctx.save();
-
-
-                ctx.strokeStyle =
-                    "rgba(255,255,255,.95)";
-
-
-                ctx.lineWidth = 2;
-
-
-                ctx.setLineDash([
-                    6,
-                    5
-                ]);
-
-
-                ctx.strokeRect(
-
-                    building.x -
-                        building.size / 2 -
-                        6,
-
-                    building.y -
-                        building.size / 2 -
-                        6,
-
-                    building.size + 12,
-
-                    building.size + 12
-
-                );
-
-
-                ctx.setLineDash([]);
-
-
-                ctx.restore();
-
-            }
-
-
-            ctx.restore();
-
-
-            /*
-             * Smooth zoom
-             */
-
-            camera.zoom +=
-                (
-                    camera.targetZoom -
-                    camera.zoom
-                ) *
-                .12;
-
-
-            requestAnimationFrame(
-                draw
-            );
-
-        }
-
-
-        /* =====================================================
-           INITIALIZE
-        ===================================================== */
-
-        updateHUD();
-
-
-        showNotification(
-            "Welcome to MetroCity",
-            "Tap BUILD to start creating your city."
-        );
-
-
-        draw();
-        <script type="module" src="./main.js"></script>
-
-    </script>
+    <!-- =========================================================
+         MAIN GAME ENTRY
+         
+         IMPORTANT:
+         There must NOT be another <script> block wrapping this.
+    ========================================================== -->
+
+    <script
+        type="module"
+        src="./main.js"
+    ></script>
 
 </body>
 </html>
