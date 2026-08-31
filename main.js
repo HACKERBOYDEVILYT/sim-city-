@@ -1,30 +1,209 @@
 /* ============================================================
    METROCITY V5
-   Main Entry Point
-   Existing index.html UI compatible
+   main.js — FINAL PRODUCTION BUILD
+   ------------------------------------------------------------
+   Responsibilities:
+   - Engine initialization
+   - Renderer integration
+   - UI integration
+   - Input integration
+   - Save/Load integration
+   - Camera
+   - Mobile touch support
+   - Simulation loop
+   - Responsive canvas
+   - Performance throttling
+   - Global MetroCity API
 ============================================================ */
 
 import { RoadEngine } from "./RoadEngine.js";
 import { BuildingEngine } from "./BuildingEngine.js";
+import { Renderer } from "./Renderer.js";
+import { UIManager } from "./UIManager.js";
+import { SaveManager } from "./SaveManager.js";
+import { InputManager } from "./InputManager.js";
+
+
+/* ============================================================
+   APP CONFIG
+============================================================ */
+
+const CONFIG = {
+
+    version: 5,
+
+    canvasId: "game",
+
+    defaultCityName: "New City",
+
+    startingMoney: 125000,
+
+    startingPopulation: 1250,
+
+    startingHappiness: 82,
+
+    startingPower: 100,
+
+    worldSize: 2400,
+
+    minZoom: 0.45,
+
+    maxZoom: 3,
+
+    defaultZoom: 1,
+
+    speeds: [1, 2, 4, 8],
+
+    simulationInterval: 5000,
+
+    maxDelta: 100,
+
+    maxDPR: 2,
+
+    autosave: true,
+
+    autosaveInterval: 60000
+};
+
+
+/* ============================================================
+   SAFE HELPERS
+============================================================ */
+
+function safeNumber(
+    value,
+    fallback = 0
+) {
+
+    const number =
+        Number(value);
+
+    return Number.isFinite(number)
+        ? number
+        : fallback;
+}
+
+
+function clamp(
+    value,
+    min,
+    max
+) {
+
+    return Math.max(
+        min,
+        Math.min(
+            max,
+            value
+        )
+    );
+}
+
+
+function safeCall(
+    object,
+    method,
+    ...args
+) {
+
+    try {
+
+        if (
+            object &&
+            typeof object[method] === "function"
+        ) {
+
+            return object[method](...args);
+        }
+
+    } catch (error) {
+
+        console.error(
+            `MetroCity: ${method}() failed`,
+            error
+        );
+    }
+
+    return undefined;
+}
+
+
+function dispatch(
+    name,
+    detail = {}
+) {
+
+    try {
+
+        window.dispatchEvent(
+            new CustomEvent(
+                name,
+                {
+                    detail
+                }
+            )
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "MetroCity event failed:",
+            name,
+            error
+        );
+    }
+}
 
 
 /* ============================================================
    DOM READY
 ============================================================ */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener(
+    "DOMContentLoaded",
+    initializeMetroCity,
+    {
+        once: true
+    }
+);
+
+
+/* ============================================================
+   INITIALIZATION
+============================================================ */
+
+function initializeMetroCity() {
+
+    if (
+        window.__METROCITY_INITIALIZED__
+    ) {
+
+        console.warn(
+            "MetroCity is already initialized."
+        );
+
+        return;
+    }
+
+
+    window.__METROCITY_INITIALIZED__ =
+        true;
+
 
     /* --------------------------------------------------------
        CANVAS
     -------------------------------------------------------- */
 
     const canvas =
-        document.getElementById("game");
+        document.getElementById(
+            CONFIG.canvasId
+        );
+
 
     if (!canvas) {
 
         console.error(
-            "MetroCity: #game canvas not found."
+            "MetroCity: #game canvas was not found."
         );
 
         return;
@@ -32,7 +211,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     const ctx =
-        canvas.getContext("2d");
+        canvas.getContext(
+            "2d",
+            {
+                alpha: false,
+                desynchronized: true
+            }
+        );
 
 
     if (!ctx) {
@@ -45,130 +230,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* --------------------------------------------------------
-       CANVAS SIZE
-    -------------------------------------------------------- */
-
-    let width =
-        window.innerWidth;
-
-    let height =
-        window.innerHeight;
-
-
-    function resizeCanvas() {
-
-        width =
-            window.innerWidth;
-
-        height =
-            window.innerHeight;
-
-
-        const dpr =
-            Math.min(
-                window.devicePixelRatio || 1,
-                2
-            );
-
-
-        canvas.width =
-            width * dpr;
-
-        canvas.height =
-            height * dpr;
-
-
-        canvas.style.width =
-            width + "px";
-
-        canvas.style.height =
-            height + "px";
-
-
-        ctx.setTransform(
-            dpr,
-            0,
-            0,
-            dpr,
-            0,
-            0
-        );
-    }
-
-
-    window.addEventListener(
-        "resize",
-        resizeCanvas
-    );
-
-
-    resizeCanvas();
-
-
     /* ========================================================
        CITY STATE
     ======================================================== */
 
-    const city = {
-
-        name:
-            "New City",
-
-        money:
-            125000,
-
-        population:
-            1250,
-
-        happiness:
-            82,
-
-        power:
-            100,
-
-        workers:
-            0,
-
-        currentTool:
-            null,
-
-        roads:
-            [],
-
-        buildings:
-            [],
-
-        intersections:
-            [],
-
-        statistics: {
-
-            income:
-                0,
-
-            expenses:
-                0,
-
-            totalIncome:
-                0,
-
-            totalExpenses:
-                0,
-
-            buildingsBuilt:
-                0,
-
-            buildingsDemolished:
-                0,
-
-            roadsBuilt:
-                0,
-
-            playTime:
-                0
-        }
-    };
+    const city = createCity();
 
 
     /* ========================================================
@@ -177,23 +243,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const camera = {
 
-        x:
-            0,
+        x: 0,
 
-        y:
-            0,
+        y: 0,
 
         zoom:
-            1,
+            CONFIG.defaultZoom,
 
         targetZoom:
-            1,
+            CONFIG.defaultZoom,
 
         minZoom:
-            0.45,
+            CONFIG.minZoom,
 
         maxZoom:
-            3
+            CONFIG.maxZoom
     };
 
 
@@ -204,35 +268,403 @@ document.addEventListener("DOMContentLoaded", () => {
     const world = {
 
         size:
-            2400
+            CONFIG.worldSize,
+
+        halfSize:
+            CONFIG.worldSize / 2
     };
+
+
+    /* ========================================================
+       RUNTIME
+    ======================================================== */
+
+    const runtime = {
+
+        running: true,
+
+        paused: false,
+
+        destroyed: false,
+
+        speed: 1,
+
+        frameCount: 0,
+
+        lastFrame: performance.now(),
+
+        lastSimulation: performance.now(),
+
+        lastHUDUpdate: 0,
+
+        lastAutosave: performance.now(),
+
+        fps: 60,
+
+        lowPerformanceMode: false
+    };
+
+
+    /* ========================================================
+       CANVAS SIZE
+    ======================================================== */
+
+    const viewport = {
+
+        width:
+            window.innerWidth,
+
+        height:
+            window.innerHeight,
+
+        dpr:
+            1
+    };
+
+
+    function resizeCanvas() {
+
+        viewport.width =
+            Math.max(
+                1,
+                window.innerWidth
+            );
+
+
+        viewport.height =
+            Math.max(
+                1,
+                window.innerHeight
+            );
+
+
+        viewport.dpr =
+            Math.min(
+                window.devicePixelRatio || 1,
+                CONFIG.maxDPR
+            );
+
+
+        canvas.width =
+            Math.floor(
+                viewport.width *
+                viewport.dpr
+            );
+
+
+        canvas.height =
+            Math.floor(
+                viewport.height *
+                viewport.dpr
+            );
+
+
+        canvas.style.width =
+            `${viewport.width}px`;
+
+
+        canvas.style.height =
+            `${viewport.height}px`;
+
+
+        ctx.setTransform(
+            viewport.dpr,
+            0,
+            0,
+            viewport.dpr,
+            0,
+            0
+        );
+
+
+        ctx.imageSmoothingEnabled =
+            true;
+
+
+        dispatch(
+            "metrocity:resize",
+            {
+                width:
+                    viewport.width,
+
+                height:
+                    viewport.height,
+
+                dpr:
+                    viewport.dpr
+            }
+        );
+    }
+
+
+    window.addEventListener(
+        "resize",
+        resizeCanvas,
+        {
+            passive: true
+        }
+    );
+
+
+    window.addEventListener(
+        "orientationchange",
+        () => {
+
+            setTimeout(
+                resizeCanvas,
+                100
+            );
+
+        },
+        {
+            passive: true
+        }
+    );
+
+
+    resizeCanvas();
 
 
     /* ========================================================
        ENGINES
     ======================================================== */
 
-    const roadEngine =
-        new RoadEngine(
-            canvas,
-            city,
-            camera
+    let roadEngine = null;
+
+    let buildingEngine = null;
+
+    let renderer = null;
+
+    let uiManager = null;
+
+    let saveManager = null;
+
+    let inputManager = null;
+
+
+    /* ========================================================
+       ROAD ENGINE
+    ======================================================== */
+
+    try {
+
+        roadEngine =
+            new RoadEngine(
+                canvas,
+                city,
+                camera
+            );
+
+    } catch (error) {
+
+        console.error(
+            "MetroCity: RoadEngine initialization failed.",
+            error
+        );
+    }
+
+
+    /* ========================================================
+       BUILDING ENGINE
+    ======================================================== */
+
+    try {
+
+        buildingEngine =
+            new BuildingEngine(
+                city,
+                camera,
+                canvas
+            );
+
+    } catch (error) {
+
+        console.error(
+            "MetroCity: BuildingEngine initialization failed.",
+            error
+        );
+    }
+
+
+    /* ========================================================
+       RENDERER
+    ======================================================== */
+
+    try {
+
+        renderer =
+            new Renderer(
+                canvas,
+                ctx,
+                city,
+                camera,
+                world
+            );
+
+    } catch (error) {
+
+        console.warn(
+            "MetroCity: Renderer constructor compatibility fallback.",
+            error
         );
 
 
-    const buildingEngine =
-        new BuildingEngine(
-            city,
-            camera,
-            canvas
+        try {
+
+            renderer =
+                new Renderer({
+                    canvas,
+                    ctx,
+                    city,
+                    camera,
+                    world
+                });
+
+        } catch (secondError) {
+
+            console.error(
+                "MetroCity: Renderer initialization failed.",
+                secondError
+            );
+        }
+    }
+
+
+    /* ========================================================
+       UI MANAGER
+    ======================================================== */
+
+    try {
+
+        uiManager =
+            new UIManager(
+                city,
+                camera,
+                buildingEngine,
+                roadEngine
+            );
+
+    } catch (error) {
+
+        console.warn(
+            "MetroCity: UIManager constructor compatibility fallback.",
+            error
         );
+
+
+        try {
+
+            uiManager =
+                new UIManager({
+                    city,
+                    camera,
+                    buildingEngine,
+                    roadEngine,
+                    canvas
+                });
+
+        } catch (secondError) {
+
+            console.warn(
+                "MetroCity: UIManager unavailable.",
+                secondError
+            );
+        }
+    }
+
+
+    /* ========================================================
+       SAVE MANAGER
+    ======================================================== */
+
+    try {
+
+        saveManager =
+            new SaveManager(
+                city,
+                camera
+            );
+
+    } catch (error) {
+
+        console.warn(
+            "MetroCity: SaveManager constructor compatibility fallback.",
+            error
+        );
+
+
+        try {
+
+            saveManager =
+                new SaveManager({
+                    city,
+                    camera,
+                    version:
+                        CONFIG.version
+                });
+
+        } catch (secondError) {
+
+            console.warn(
+                "MetroCity: SaveManager unavailable; local fallback enabled.",
+                secondError
+            );
+        }
+    }
+
+
+    /* ========================================================
+       INPUT MANAGER
+    ======================================================== */
+
+    try {
+
+        inputManager =
+            new InputManager(
+                canvas,
+                city,
+                camera,
+                buildingEngine,
+                roadEngine
+            );
+
+    } catch (error) {
+
+        console.warn(
+            "MetroCity: InputManager constructor compatibility fallback.",
+            error
+        );
+
+
+        try {
+
+            inputManager =
+                new InputManager({
+                    canvas,
+                    city,
+                    camera,
+                    buildingEngine,
+                    roadEngine
+                });
+
+        } catch (secondError) {
+
+            console.warn(
+                "MetroCity: InputManager unavailable; built-in input enabled.",
+                secondError
+            );
+        }
+    }
 
 
     /* ========================================================
        GLOBAL GAME OBJECT
     ======================================================== */
 
-    window.metroCity = {
+    const metroCity = {
+
+        version:
+            CONFIG.version,
 
         canvas,
 
@@ -244,9 +676,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         world,
 
+        viewport,
+
+        runtime,
+
         roadEngine,
 
         buildingEngine,
+
+        renderer,
+
+        uiManager,
+
+        saveManager,
+
+        inputManager,
 
         running:
             true,
@@ -276,12 +720,201 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setTool,
 
-        clearTool
+        clearTool,
+
+        zoomIn,
+
+        zoomOut,
+
+        resetCamera,
+
+        centerCamera,
+
+        destroy
     };
 
 
+    window.metroCity =
+        metroCity;
+
+
     window.game =
-        window.metroCity;
+        metroCity;
+
+
+    window.metroCitySpeed =
+        1;
+
+
+    /* ========================================================
+       TOOL SYSTEM
+    ======================================================== */
+
+    function setTool(
+        tool
+    ) {
+
+        if (
+            tool !== null &&
+            typeof tool !== "string"
+        ) {
+
+            return false;
+        }
+
+
+        city.currentTool =
+            tool;
+
+
+        safeCall(
+            roadEngine,
+            "setTool",
+            tool === "road"
+                ? "road"
+                : null
+        );
+
+
+        safeCall(
+            inputManager,
+            "setTool",
+            tool
+        );
+
+
+        safeCall(
+            uiManager,
+            "setTool",
+            tool
+        );
+
+
+        updateToolIndicator(
+            tool
+        );
+
+
+        dispatch(
+            "metrocity:toolChanged",
+            {
+                tool
+            }
+        );
+
+
+        return true;
+    }
+
+
+    function clearTool() {
+
+        return setTool(
+            null
+        );
+    }
+
+
+    function updateToolIndicator(
+        tool
+    ) {
+
+        const indicator =
+            document.getElementById(
+                "toolIndicator"
+            );
+
+
+        if (!indicator)
+            return;
+
+
+        if (!tool) {
+
+            indicator.classList.remove(
+                "show"
+            );
+
+
+            indicator.textContent =
+                "Tool: Select";
+
+
+            return;
+        }
+
+
+        indicator.textContent =
+            "Tool: " +
+            formatToolName(
+                tool
+            );
+
+
+        indicator.classList.add(
+            "show"
+        );
+    }
+
+
+    function formatToolName(
+        tool
+    ) {
+
+        const names = {
+
+            road:
+                "Road",
+
+            house:
+                "Residential",
+
+            commercial:
+                "Commercial",
+
+            industrial:
+                "Industrial",
+
+            hospital:
+                "Hospital",
+
+            police:
+                "Police Station",
+
+            fire:
+                "Fire Station",
+
+            school:
+                "School",
+
+            park:
+                "Park",
+
+            power:
+                "Power Plant",
+
+            water:
+                "Water Plant",
+
+            stadium:
+                "Stadium"
+        };
+
+
+        return (
+            names[tool] ||
+            String(tool)
+                .replace(
+                    /[-_]/g,
+                    " "
+                )
+                .replace(
+                    /\b\w/g,
+                    char =>
+                        char.toUpperCase()
+                )
+        );
+    }
 
 
     /* ========================================================
@@ -328,10 +961,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    /* ========================================================
-       BUILD TOOL
-    ======================================================== */
-
     document
         .querySelectorAll(
             ".build-item"
@@ -345,6 +974,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         const tool =
                             button.dataset.tool;
+
+
+                        if (!tool)
+                            return;
 
 
                         setTool(
@@ -376,11 +1009,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             .remove(
                                 "open"
                             );
-
-
-                        updateToolIndicator(
-                            tool
-                        );
                     }
                 );
             }
@@ -388,196 +1016,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* ========================================================
-       TOOL SYSTEM
-    ======================================================== */
-
-    function setTool(
-        tool
-    ) {
-
-        city.currentTool =
-            tool;
-
-
-        if (
-            tool === "road"
-        ) {
-
-            if (
-                typeof roadEngine
-                    .setTool ===
-                "function"
-            ) {
-
-                roadEngine.setTool(
-                    "road"
-                );
-            }
-
-        } else {
-
-            if (
-                typeof roadEngine
-                    .setTool ===
-                "function"
-            ) {
-
-                roadEngine.setTool(
-                    null
-                );
-            }
-        }
-
-
-        updateToolIndicator(
-            tool
-        );
-    }
-
-
-    function clearTool() {
-
-        city.currentTool =
-            null;
-
-
-        if (
-            typeof roadEngine
-                .setTool ===
-            "function"
-        ) {
-
-            roadEngine.setTool(
-                null
-            );
-        }
-
-
-        document
-            .querySelectorAll(
-                ".build-item"
-            )
-            .forEach(
-                item => {
-
-                    item.classList
-                        .remove(
-                            "selected"
-                        );
-                }
-            );
-
-
-        updateToolIndicator(
-            null
-        );
-    }
-
-
-    /* ========================================================
-       TOOL INDICATOR
-    ======================================================== */
-
-    function updateToolIndicator(
-        tool
-    ) {
-
-        const indicator =
-            document.getElementById(
-                "toolIndicator"
-            );
-
-
-        if (!indicator)
-            return;
-
-
-        if (!tool) {
-
-            indicator.classList.remove(
-                "show"
-            );
-
-            indicator.textContent =
-                "Tool: Select";
-
-            return;
-        }
-
-
-        indicator.textContent =
-            "Tool: " +
-            formatToolName(
-                tool
-            );
-
-
-        indicator.classList.add(
-            "show"
-        );
-    }
-
-
-    function formatToolName(
-        tool
-    ) {
-
-        const names = {
-
-            road:
-                "Road",
-
-            house:
-                "Residential",
-
-            commercial:
-                "Commercial",
-
-            industrial:
-                "Industrial",
-
-            hospital:
-                "Hospital",
-
-            police:
-                "Police",
-
-            fire:
-                "Fire Station",
-
-            school:
-                "School",
-
-            park:
-                "Park",
-
-            power:
-                "Power Plant"
-        };
-
-
-        return (
-            names[tool] ||
-            String(tool)
-                .replace(
-                    /[-_]/g,
-                    " "
-                )
-                .replace(
-                    /\b\w/g,
-                    char =>
-                        char.toUpperCase()
-                )
-        );
-    }
-
-
-    /* ========================================================
-       BUILDING PANEL
+       BUILDING SELECTION
     ======================================================== */
 
     let selectedBuilding =
         null;
+
+
+    function selectBuilding(
+        building
+    ) {
+
+        if (!building) {
+
+            closeBuildingPanel();
+
+            return;
+        }
+
+
+        selectedBuilding =
+            building;
+
+
+        metroCity.selectedBuilding =
+            building;
+
+
+        safeCall(
+            buildingEngine,
+            "selectBuilding",
+            building
+        );
+
+
+        safeCall(
+            uiManager,
+            "selectBuilding",
+            building
+        );
+
+
+        openBuildingPanel(
+            building
+        );
+
+
+        dispatch(
+            "metrocity:buildingSelected",
+            {
+                building
+            }
+        );
+    }
 
 
     function openBuildingPanel(
@@ -586,15 +1077,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!building)
             return;
-
-
-        selectedBuilding =
-            building;
-
-
-        window.metroCity
-            .selectedBuilding =
-            building;
 
 
         const data =
@@ -612,35 +1094,42 @@ document.addEventListener("DOMContentLoaded", () => {
                 "buildingIcon"
             );
 
+
         const name =
             document.getElementById(
                 "buildingName"
             );
+
 
         const type =
             document.getElementById(
                 "buildingType"
             );
 
+
         const level =
             document.getElementById(
                 "buildingLevel"
             );
+
 
         const population =
             document.getElementById(
                 "panelPopulation"
             );
 
+
         const workers =
             document.getElementById(
                 "panelWorkers"
             );
 
+
         const happiness =
             document.getElementById(
                 "panelHappiness"
             );
+
 
         const service =
             document.getElementById(
@@ -667,59 +1156,59 @@ document.addEventListener("DOMContentLoaded", () => {
         if (level)
             level.innerHTML =
                 `Level <strong>${
-                    building.level || 1
+                    safeNumber(
+                        building.level,
+                        1
+                    )
                 }</strong>`;
 
 
         if (population)
             population.textContent =
-                Number(
-                    building.population || 0
+                safeNumber(
+                    building.population
                 ).toLocaleString();
 
 
         if (workers)
             workers.textContent =
-                Number(
-                    building.workers || 0
+                safeNumber(
+                    building.workers
                 ).toLocaleString();
-
-
-        const happinessValue =
-            building.happiness || 0;
 
 
         if (happiness)
             happiness.textContent =
-                happinessValue >= 0
+                safeNumber(
+                    building.happiness
+                ) >= 0
+
                     ? "+" +
-                      happinessValue
-                    : happinessValue;
+                      safeNumber(
+                          building.happiness
+                      )
+
+                    : safeNumber(
+                        building.happiness
+                      );
 
 
-        let coverage =
-            0;
+        let coverage = 0;
 
 
         try {
 
-            if (
-                typeof buildingEngine
-                    .getServiceCoverage ===
-                "function"
-            ) {
-
-                coverage =
+            coverage =
+                safeNumber(
                     buildingEngine
-                        .getServiceCoverage(
+                        ?.getServiceCoverage?.(
                             building
-                        );
-            }
+                        )
+                );
 
         } catch {
 
-            coverage =
-                0;
+            coverage = 0;
         }
 
 
@@ -727,9 +1216,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             service.textContent =
                 coverage > 0
-                    ? Number(
-                        coverage
-                    ).toLocaleString()
+                    ? coverage.toLocaleString()
                     : "—";
         }
 
@@ -750,21 +1237,21 @@ document.addEventListener("DOMContentLoaded", () => {
             null;
 
 
-        window.metroCity
-            .selectedBuilding =
+        metroCity.selectedBuilding =
             null;
 
 
-        if (
-            buildingEngine
-                .selectedBuilding !==
-            undefined
-        ) {
+        safeCall(
+            buildingEngine,
+            "selectBuilding",
+            null
+        );
 
-            buildingEngine
-                .selectedBuilding =
-                null;
-        }
+
+        safeCall(
+            uiManager,
+            "closeBuildingPanel"
+        );
 
 
         document
@@ -803,24 +1290,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
 
 
-                if (
-                    typeof buildingEngine
-                        .upgradeBuilding !==
-                    "function"
-                ) {
-
-                    return;
-                }
+                const result =
+                    safeCall(
+                        buildingEngine,
+                        "upgradeBuilding",
+                        selectedBuilding
+                    );
 
 
-                const success =
-                    buildingEngine
-                        .upgradeBuilding(
-                            selectedBuilding
-                        );
-
-
-                if (success) {
+                if (result) {
 
                     updateHUD();
 
@@ -858,17 +1336,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
 
 
-                if (
-                    typeof buildingEngine
-                        .demolishBuilding ===
-                    "function"
-                ) {
-
-                    buildingEngine
-                        .demolishBuilding(
-                            selectedBuilding
-                        );
-                }
+                safeCall(
+                    buildingEngine,
+                    "demolishBuilding",
+                    selectedBuilding
+                );
 
 
                 closeBuildingPanel();
@@ -879,8 +1351,94 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* ========================================================
-       CAMERA CONTROLS
+       CAMERA
     ======================================================== */
+
+    function zoomIn() {
+
+        camera.targetZoom =
+            clamp(
+                camera.targetZoom * 1.25,
+                camera.minZoom,
+                camera.maxZoom
+            );
+
+
+        dispatch(
+            "metrocity:cameraChanged",
+            {
+                camera
+            }
+        );
+    }
+
+
+    function zoomOut() {
+
+        camera.targetZoom =
+            clamp(
+                camera.targetZoom / 1.25,
+                camera.minZoom,
+                camera.maxZoom
+            );
+
+
+        dispatch(
+            "metrocity:cameraChanged",
+            {
+                camera
+            }
+        );
+    }
+
+
+    function resetCamera() {
+
+        camera.x = 0;
+
+        camera.y = 0;
+
+        camera.zoom =
+            CONFIG.defaultZoom;
+
+        camera.targetZoom =
+            CONFIG.defaultZoom;
+
+
+        dispatch(
+            "metrocity:cameraChanged",
+            {
+                camera
+            }
+        );
+    }
+
+
+    function centerCamera(
+        x = 0,
+        y = 0,
+        zoom = 1
+    ) {
+
+        camera.x =
+            safeNumber(x);
+
+
+        camera.y =
+            safeNumber(y);
+
+
+        camera.targetZoom =
+            clamp(
+                safeNumber(
+                    zoom,
+                    1
+                ),
+                camera.minZoom,
+                camera.maxZoom
+            );
+    }
+
 
     document
         .getElementById(
@@ -888,15 +1446,7 @@ document.addEventListener("DOMContentLoaded", () => {
         )
         ?.addEventListener(
             "click",
-            () => {
-
-                camera.targetZoom =
-                    Math.min(
-                        camera.targetZoom *
-                        1.25,
-                        camera.maxZoom
-                    );
-            }
+            zoomIn
         );
 
 
@@ -906,15 +1456,7 @@ document.addEventListener("DOMContentLoaded", () => {
         )
         ?.addEventListener(
             "click",
-            () => {
-
-                camera.targetZoom =
-                    Math.max(
-                        camera.targetZoom /
-                        1.25,
-                        camera.minZoom
-                    );
-            }
+            zoomOut
         );
 
 
@@ -924,127 +1466,143 @@ document.addEventListener("DOMContentLoaded", () => {
         )
         ?.addEventListener(
             "click",
-            () => {
-
-                camera.x =
-                    0;
-
-                camera.y =
-                    0;
-
-                camera.targetZoom =
-                    1;
-            }
+            resetCamera
         );
 
 
     /* ========================================================
-       CAMERA DRAG
+       BUILT-IN MOBILE CAMERA
+       Used only if InputManager doesn't own input.
     ======================================================== */
 
     let cameraPointer =
         null;
 
 
-    let didDrag =
+    let cameraDragging =
         false;
 
 
-    canvas.addEventListener(
-        "pointerdown",
-        event => {
+    let cameraStartX = 0;
 
-            /*
-             * Building / road tools
-             * control the pointer.
-             */
-
-            if (
-                city.currentTool
-            ) {
-
-                return;
-            }
+    let cameraStartY = 0;
 
 
-            cameraPointer = {
+    function shouldUseFallbackInput() {
 
-                id:
-                    event.pointerId,
-
-                x:
-                    event.clientX,
-
-                y:
-                    event.clientY
-            };
+        return !inputManager;
+    }
 
 
-            didDrag =
-                false;
+    function pointerDown(
+        event
+    ) {
+
+        if (!shouldUseFallbackInput())
+            return;
 
 
-            canvas.setPointerCapture?.(
-                event.pointerId
-            );
+        if (
+            city.currentTool
+        ) {
+
+            return;
         }
-    );
 
 
-    canvas.addEventListener(
-        "pointermove",
-        event => {
+        cameraPointer = {
 
-            if (!cameraPointer)
-                return;
+            id:
+                event.pointerId,
 
+            x:
+                event.clientX,
 
-            if (
-                event.pointerId !==
-                cameraPointer.id
-            ) {
-
-                return;
-            }
+            y:
+                event.clientY
+        };
 
 
-            const dx =
+        cameraStartX =
+            event.clientX;
+
+
+        cameraStartY =
+            event.clientY;
+
+
+        cameraDragging =
+            false;
+
+
+        canvas.setPointerCapture?.(
+            event.pointerId
+        );
+    }
+
+
+    function pointerMove(
+        event
+    ) {
+
+        if (!shouldUseFallbackInput())
+            return;
+
+
+        if (!cameraPointer)
+            return;
+
+
+        if (
+            event.pointerId !==
+            cameraPointer.id
+        ) {
+
+            return;
+        }
+
+
+        const dx =
+            event.clientX -
+            cameraPointer.x;
+
+
+        const dy =
+            event.clientY -
+            cameraPointer.y;
+
+
+        if (
+            Math.abs(
                 event.clientX -
-                cameraPointer.x;
-
-
-            const dy =
+                cameraStartX
+            ) > 4 ||
+            Math.abs(
                 event.clientY -
-                cameraPointer.y;
+                cameraStartY
+            ) > 4
+        ) {
 
-
-            if (
-                Math.abs(dx) > 1 ||
-                Math.abs(dy) > 1
-            ) {
-
-                didDrag =
-                    true;
-            }
-
-
-            camera.x +=
-                dx;
-
-            camera.y +=
-                dy;
-
-
-            cameraPointer.x =
-                event.clientX;
-
-            cameraPointer.y =
-                event.clientY;
+            cameraDragging =
+                true;
         }
-    );
 
 
-    function stopCameraDrag() {
+        camera.x += dx;
+
+        camera.y += dy;
+
+
+        cameraPointer.x =
+            event.clientX;
+
+
+        cameraPointer.y =
+            event.clientY;
+    }
+
+
+    function pointerUp() {
 
         cameraPointer =
             null;
@@ -1052,108 +1610,85 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     canvas.addEventListener(
+        "pointerdown",
+        pointerDown,
+        {
+            passive: true
+        }
+    );
+
+
+    canvas.addEventListener(
+        "pointermove",
+        pointerMove,
+        {
+            passive: true
+        }
+    );
+
+
+    canvas.addEventListener(
         "pointerup",
-        stopCameraDrag
+        pointerUp,
+        {
+            passive: true
+        }
     );
 
 
     canvas.addEventListener(
         "pointercancel",
-        stopCameraDrag
+        pointerUp,
+        {
+            passive: true
+        }
     );
 
 
     /* ========================================================
-       BUILDING SELECT
+       FALLBACK BUILDING SELECTION
     ======================================================== */
 
     canvas.addEventListener(
         "click",
         event => {
 
-            if (
-                city.currentTool
-            ) {
-
+            if (!shouldUseFallbackInput())
                 return;
-            }
 
 
-            if (didDrag) {
+            if (city.currentTool)
+                return;
 
-                didDrag =
+
+            if (cameraDragging) {
+
+                cameraDragging =
                     false;
 
                 return;
             }
 
 
-            const rect =
-                canvas.getBoundingClientRect();
-
-
-            const screenX =
-                event.clientX -
-                rect.left;
-
-
-            const screenY =
-                event.clientY -
-                rect.top;
-
-
-            const worldPoint =
+            const point =
                 screenToWorld(
-                    screenX,
-                    screenY
+                    event.clientX,
+                    event.clientY
                 );
 
 
-            let building =
-                null;
-
-
-            try {
-
-                if (
-                    typeof buildingEngine
-                        .findBuildingAt ===
-                    "function"
-                ) {
-
-                    building =
-                        buildingEngine
-                            .findBuildingAt(
-                                worldPoint.x,
-                                worldPoint.y
-                            );
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "Building selection error:",
-                    error
+            const building =
+                safeCall(
+                    buildingEngine,
+                    "findBuildingAt",
+                    point.x,
+                    point.y
                 );
-            }
 
 
             if (building) {
 
-                if (
-                    typeof buildingEngine
-                        .selectBuilding ===
-                    "function"
-                ) {
-
-                    buildingEngine
-                        .selectBuilding(
-                            building
-                        );
-                }
-
-
-                openBuildingPanel(
+                selectBuilding(
                     building
                 );
 
@@ -1165,25 +1700,43 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
+    /* ========================================================
+       SCREEN → WORLD
+    ======================================================== */
+
     function screenToWorld(
         screenX,
         screenY
     ) {
 
+        const rect =
+            canvas.getBoundingClientRect();
+
+
+        const x =
+            screenX -
+            rect.left;
+
+
+        const y =
+            screenY -
+            rect.top;
+
+
         return {
 
             x:
                 (
-                    screenX -
-                    width / 2 -
+                    x -
+                    rect.width / 2 -
                     camera.x
                 ) /
                 camera.zoom,
 
             y:
                 (
-                    screenY -
-                    height / 2 -
+                    y -
+                    rect.height / 2 -
                     camera.y
                 ) /
                 camera.zoom
@@ -1195,22 +1748,46 @@ document.addEventListener("DOMContentLoaded", () => {
        HUD
     ======================================================== */
 
-    function updateHUD() {
+    function updateHUD(
+        force = false
+    ) {
+
+        const now =
+            performance.now();
+
+
+        if (
+            !force &&
+            now -
+            runtime.lastHUDUpdate <
+            250
+        ) {
+
+            return;
+        }
+
+
+        runtime.lastHUDUpdate =
+            now;
+
 
         const money =
             document.getElementById(
                 "money"
             );
 
+
         const population =
             document.getElementById(
                 "population"
             );
 
+
         const happiness =
             document.getElementById(
                 "happiness"
             );
+
 
         const power =
             document.getElementById(
@@ -1225,7 +1802,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 Math.max(
                     0,
                     Math.floor(
-                        city.money
+                        safeNumber(
+                            city.money
+                        )
                     )
                 ).toLocaleString();
         }
@@ -1237,7 +1816,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 Math.max(
                     0,
                     Math.floor(
-                        city.population
+                        safeNumber(
+                            city.population
+                        )
                     )
                 ).toLocaleString();
         }
@@ -1247,7 +1828,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             happiness.textContent =
                 Math.round(
-                    city.happiness
+                    clamp(
+                        safeNumber(
+                            city.happiness
+                        ),
+                        0,
+                        100
+                    )
                 ) +
                 "%";
         }
@@ -1257,15 +1844,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
             power.textContent =
                 Math.round(
-                    city.power
+                    clamp(
+                        safeNumber(
+                            city.power
+                        ),
+                        0,
+                        100
+                    )
                 ) +
                 "%";
         }
+
+
+        safeCall(
+            uiManager,
+            "updateHUD"
+        );
     }
 
 
     /* ========================================================
-       NOTIFICATION
+       NOTIFICATIONS
     ======================================================== */
 
     let notificationTimer =
@@ -1276,6 +1875,14 @@ document.addEventListener("DOMContentLoaded", () => {
         title,
         text
     ) {
+
+        safeCall(
+            uiManager,
+            "notify",
+            title,
+            text
+        );
+
 
         const box =
             document.getElementById(
@@ -1337,76 +1944,160 @@ document.addEventListener("DOMContentLoaded", () => {
        ENGINE EVENTS
     ======================================================== */
 
-    window.addEventListener(
-        "metrocity:notification",
-        event => {
+    function onNotification(
+        event
+    ) {
 
-            const detail =
-                event.detail || {};
+        const detail =
+            event.detail || {};
 
 
-            showNotification(
-                detail.title ||
-                    "MetroCity",
+        showNotification(
+            detail.title ||
+                "MetroCity",
 
-                detail.text ||
-                    ""
+            detail.text ||
+                ""
+        );
+    }
+
+
+    function onBuildingCreated() {
+
+        city.statistics.buildingsBuilt =
+            safeNumber(
+                city.statistics
+                    ?.buildingsBuilt
+            ) + 1;
+
+
+        updateHUD(true);
+    }
+
+
+    function onBuildingUpgraded(
+        event
+    ) {
+
+        updateHUD(true);
+
+
+        if (
+            selectedBuilding &&
+            event.detail &&
+            event.detail.id ===
+                selectedBuilding.id
+        ) {
+
+            openBuildingPanel(
+                selectedBuilding
             );
         }
+    }
+
+
+    function onBuildingDemolished() {
+
+        city.statistics.buildingsDemolished =
+            safeNumber(
+                city.statistics
+                    ?.buildingsDemolished
+            ) + 1;
+
+
+        updateHUD(true);
+    }
+
+
+    function onRoadCreated() {
+
+        city.statistics.roadsBuilt =
+            safeNumber(
+                city.statistics
+                    ?.roadsBuilt
+            ) + 1;
+
+
+        updateHUD(true);
+    }
+
+
+    function onCityUpdated() {
+
+        updateHUD();
+    }
+
+
+    function onSimulationTick(
+        event
+    ) {
+
+        const income =
+            safeNumber(
+                event.detail?.income
+            );
+
+
+        city.statistics.income =
+            income;
+
+
+        city.statistics.totalIncome =
+            safeNumber(
+                city.statistics
+                    ?.totalIncome
+            ) +
+            income;
+
+
+        updateHUD();
+    }
+
+
+    window.addEventListener(
+        "metrocity:notification",
+        onNotification
     );
 
 
     window.addEventListener(
         "metrocity:buildingCreated",
-        () => {
-
-            updateHUD();
-        }
+        onBuildingCreated
     );
 
 
     window.addEventListener(
         "metrocity:buildingUpgraded",
-        event => {
-
-            updateHUD();
-
-
-            if (
-                selectedBuilding &&
-                event.detail &&
-                event.detail.id ===
-                    selectedBuilding.id
-            ) {
-
-                openBuildingPanel(
-                    selectedBuilding
-                );
-            }
-        }
+        onBuildingUpgraded
     );
 
 
     window.addEventListener(
         "metrocity:buildingDemolished",
-        () => {
-
-            updateHUD();
-        }
+        onBuildingDemolished
     );
 
 
     window.addEventListener(
         "metrocity:roadCreated",
-        () => {
+        onRoadCreated
+    );
 
-            updateHUD();
-        }
+
+    window.addEventListener(
+        "metrocity:cityUpdated",
+        onCityUpdated
+    );
+
+
+    window.addEventListener(
+        "metrocity:simulationTick",
+        onSimulationTick
     );
 
 
     /* ========================================================
-       SPEED
+       SPEED CONTROL
     ======================================================== */
 
     document
@@ -1465,64 +2156,72 @@ document.addEventListener("DOMContentLoaded", () => {
         value
     ) {
 
-        const allowed = [
-            1,
-            2,
-            4,
-            8
-        ];
-
-
         if (
-            !allowed.includes(
+            !CONFIG.speeds.includes(
                 value
             )
         ) {
 
-            value =
-                1;
+            value = 1;
         }
 
 
-        window.metroCity.speed =
+        runtime.speed =
+            value;
+
+
+        metroCity.speed =
             value;
 
 
         window.metroCitySpeed =
-            value;
+            runtime.paused
+                ? 0
+                : value;
 
 
-        /*
-         * If engine supports speed.
-         */
+        safeCall(
+            buildingEngine,
+            "setSpeed",
+            value
+        );
 
-        if (
-            typeof buildingEngine
-                .setSpeed ===
-            "function"
-        ) {
 
-            buildingEngine.setSpeed(
-                value
-            );
-        }
+        safeCall(
+            inputManager,
+            "setSpeed",
+            value
+        );
+
+
+        dispatch(
+            "metrocity:speedChanged",
+            {
+                speed:
+                    value
+            }
+        );
 
 
         return value;
     }
 
 
-    window.metroCitySpeed =
-        1;
-
-
     /* ========================================================
-       PAUSE / RESUME
+       PAUSE
     ======================================================== */
 
     function pause() {
 
-        window.metroCity.paused =
+        if (runtime.paused)
+            return;
+
+
+        runtime.paused =
+            true;
+
+
+        metroCity.paused =
             true;
 
 
@@ -1530,36 +2229,58 @@ document.addEventListener("DOMContentLoaded", () => {
             0;
 
 
-        showNotification(
-            "Simulation Paused",
-            "City simulation is paused."
+        safeCall(
+            uiManager,
+            "setPaused",
+            true
+        );
+
+
+        dispatch(
+            "metrocity:paused"
         );
     }
 
 
     function resume() {
 
-        window.metroCity.paused =
+        if (!runtime.paused)
+            return;
+
+
+        runtime.paused =
+            false;
+
+
+        metroCity.paused =
             false;
 
 
         window.metroCitySpeed =
-            window.metroCity.speed ||
+            runtime.speed ||
             1;
 
 
-        showNotification(
-            "Simulation Running",
-            "City simulation resumed."
+        runtime.lastSimulation =
+            performance.now();
+
+
+        safeCall(
+            uiManager,
+            "setPaused",
+            false
+        );
+
+
+        dispatch(
+            "metrocity:resumed"
         );
     }
 
 
     function togglePause() {
 
-        if (
-            window.metroCity.paused
-        ) {
+        if (runtime.paused) {
 
             resume();
 
@@ -1569,57 +2290,87 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        return window.metroCity.paused;
+        return runtime.paused;
     }
 
 
     /* ========================================================
-       SAVE GAME
+       SAVE
     ======================================================== */
+
+    function buildSaveData() {
+
+        return {
+
+            version:
+                CONFIG.version,
+
+            city:
+                JSON.parse(
+                    JSON.stringify(
+                        city
+                    )
+                ),
+
+            camera: {
+
+                x:
+                    camera.x,
+
+                y:
+                    camera.y,
+
+                zoom:
+                    camera.zoom,
+
+                targetZoom:
+                    camera.targetZoom
+            },
+
+            speed:
+                runtime.speed,
+
+            savedAt:
+                Date.now()
+        };
+    }
+
 
     function saveGame() {
 
         try {
 
-            const saveData = {
+            const data =
+                buildSaveData();
 
-                version:
-                    5,
 
-                city:
-                    JSON.parse(
-                        JSON.stringify(
-                            city
-                        )
-                    ),
+            const managerResult =
+                safeCall(
+                    saveManager,
+                    "save",
+                    data
+                );
 
-                camera: {
 
-                    x:
-                        camera.x,
+            if (
+                managerResult !==
+                undefined
+            ) {
 
-                    y:
-                        camera.y,
+                showNotification(
+                    "Game Saved",
+                    "Your city has been saved successfully."
+                );
 
-                    zoom:
-                        camera.zoom,
 
-                    targetZoom:
-                        camera.targetZoom
-                },
-
-                speed:
-                    window.metroCity.speed,
-
-                savedAt:
-                    Date.now()
-            };
+                return true;
+            }
 
 
             localStorage.setItem(
                 "metrocity_v5_save",
                 JSON.stringify(
-                    saveData
+                    data
                 )
             );
 
@@ -1630,12 +2381,20 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
+            dispatch(
+                "metrocity:gameSaved",
+                {
+                    data
+                }
+            );
+
+
             return true;
 
         } catch (error) {
 
             console.error(
-                "Save failed:",
+                "MetroCity save failed:",
                 error
             );
 
@@ -1652,34 +2411,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* ========================================================
-       LOAD GAME
+       LOAD
     ======================================================== */
 
     function loadGame() {
 
         try {
 
-            const raw =
-                localStorage.getItem(
-                    "metrocity_v5_save"
+            let data =
+                safeCall(
+                    saveManager,
+                    "load"
                 );
 
 
-            if (!raw) {
+            if (!data) {
 
-                showNotification(
-                    "No Save Found",
-                    "No saved city was found."
-                );
+                const raw =
+                    localStorage.getItem(
+                        "metrocity_v5_save"
+                    );
 
-                return false;
+
+                if (!raw) {
+
+                    showNotification(
+                        "No Save Found",
+                        "No saved city was found."
+                    );
+
+
+                    return false;
+                }
+
+
+                data =
+                    JSON.parse(
+                        raw
+                    );
             }
-
-
-            const data =
-                JSON.parse(
-                    raw
-                );
 
 
             if (
@@ -1688,70 +2458,86 @@ document.addEventListener("DOMContentLoaded", () => {
             ) {
 
                 throw new Error(
-                    "Invalid save file."
+                    "Invalid save data."
                 );
             }
 
 
-            /*
-             * Preserve existing object
-             * references used by engines.
-             */
-
-            Object.keys(
-                city
-            ).forEach(
-                key => {
-
-                    delete city[key];
-                }
-            );
-
-
-            Object.assign(
-                city,
+            restoreCity(
                 data.city
             );
 
-
-            /*
-             * Restore camera.
-             */
 
             if (
                 data.camera
             ) {
 
                 camera.x =
-                    Number(
-                        data.camera.x || 0
+                    safeNumber(
+                        data.camera.x
                     );
+
 
                 camera.y =
-                    Number(
-                        data.camera.y || 0
+                    safeNumber(
+                        data.camera.y
                     );
+
 
                 camera.zoom =
-                    Number(
-                        data.camera.zoom || 1
+                    clamp(
+                        safeNumber(
+                            data.camera.zoom,
+                            1
+                        ),
+                        camera.minZoom,
+                        camera.maxZoom
                     );
 
+
                 camera.targetZoom =
-                    Number(
-                        data.camera.targetZoom || 1
+                    clamp(
+                        safeNumber(
+                            data.camera.targetZoom,
+                            camera.zoom
+                        ),
+                        camera.minZoom,
+                        camera.maxZoom
                     );
             }
 
 
             setSpeed(
-                Number(
-                    data.speed || 1
+                safeNumber(
+                    data.speed,
+                    1
                 )
             );
 
 
-            updateHUD();
+            clearTool();
+
+            closeBuildingPanel();
+
+            updateHUD(true);
+
+
+            safeCall(
+                roadEngine,
+                "refresh"
+            );
+
+
+            safeCall(
+                buildingEngine,
+                "recalculateCity"
+            );
+
+
+            safeCall(
+                renderer,
+                "invalidate"
+            );
 
 
             showNotification(
@@ -1760,12 +2546,20 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
+            dispatch(
+                "metrocity:gameLoaded",
+                {
+                    data
+                }
+            );
+
+
             return true;
 
         } catch (error) {
 
             console.error(
-                "Load failed:",
+                "MetroCity load failed:",
                 error
             );
 
@@ -1782,45 +2576,1382 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* ========================================================
-       NEW CITY
+       RESTORE CITY
     ======================================================== */
 
-    function newCity(
-        name = "New City"
+    function restoreCity(
+        source
     ) {
 
+        const restored =
+            source || {};
+
+
         city.name =
-            name;
+            restored.name ||
+            CONFIG.defaultCityName;
+
 
         city.money =
-            125000;
+            safeNumber(
+                restored.money,
+                CONFIG.startingMoney
+            );
+
 
         city.population =
-            1250;
+            safeNumber(
+                restored.population,
+                CONFIG.startingPopulation
+            );
+
 
         city.happiness =
-            82;
+            safeNumber(
+                restored.happiness,
+                CONFIG.startingHappiness
+            );
+
 
         city.power =
-            100;
+            safeNumber(
+                restored.power,
+                CONFIG.startingPower
+            );
+
 
         city.workers =
-            0;
+            safeNumber(
+                restored.workers,
+                0
+            );
+
 
         city.currentTool =
             null;
 
+
+        city.roads =
+            Array.isArray(
+                restored.roads
+            )
+                ? restored.roads
+                : [];
+
+
+        city.buildings =
+            Array.isArray(
+                restored.buildings
+            )
+                ? restored.buildings
+                : [];
+
+
+        city.intersections =
+            Array.isArray(
+                restored.intersections
+            )
+                ? restored.intersections
+                : [];
+
+
+        city.statistics =
+            normalizeStatistics(
+                restored.statistics
+            );
+    }
+
+
+    /* ========================================================
+       NEW CITY
+    ======================================================== */
+
+    function newCity(
+        name = CONFIG.defaultCityName
+    ) {
+
+        const cleanName =
+            String(
+                name || CONFIG.defaultCityName
+            ).trim() ||
+            CONFIG.defaultCityName;
+
+
+        city.name =
+            cleanName;
+
+
+        city.money =
+            CONFIG.startingMoney;
+
+
+        city.population =
+            CONFIG.startingPopulation;
+
+
+        city.happiness =
+            CONFIG.startingHappiness;
+
+
+        city.power =
+            CONFIG.startingPower;
+
+
+        city.workers =
+            0;
+
+
+        city.currentTool =
+            null;
+
+
         city.roads =
             [];
 
+
         city.buildings =
             [];
+
 
         city.intersections =
             [];
 
 
-        city.statistics = {
+        city.statistics =
+            createStatistics();
+
+
+        resetCamera();
+
+        clearTool();
+
+        closeBuildingPanel();
+
+
+        safeCall(
+            buildingEngine,
+            "recalculateCity"
+        );
+
+
+        safeCall(
+            roadEngine,
+            "reset"
+        );
+
+
+        safeCall(
+            roadEngine,
+            "refresh"
+        );
+
+
+        safeCall(
+            renderer,
+            "invalidate"
+        );
+
+
+        updateHUD(true);
+
+
+        showNotification(
+            "New City",
+            `${cleanName} has been created.`
+        );
+
+
+        dispatch(
+            "metrocity:newCity",
+            {
+                name:
+                    cleanName
+            }
+        );
+
+
+        return true;
+    }
+
+
+    /* ========================================================
+       AUTOSAVE
+    ======================================================== */
+
+    function autosave(
+        timestamp
+    ) {
+
+        if (!CONFIG.autosave)
+            return;
+
+
+        if (runtime.paused)
+            return;
+
+
+        if (
+            timestamp -
+            runtime.lastAutosave <
+            CONFIG.autosaveInterval
+        ) {
+
+            return;
+        }
+
+
+        runtime.lastAutosave =
+            timestamp;
+
+
+        try {
+
+            const data =
+                buildSaveData();
+
+
+            localStorage.setItem(
+                "metrocity_v5_autosave",
+                JSON.stringify(
+                    data
+                )
+            );
+
+
+        } catch (error) {
+
+            console.warn(
+                "MetroCity autosave failed:",
+                error
+            );
+        }
+    }
+
+
+    /* ========================================================
+       SIMULATION SAFETY
+    ======================================================== */
+
+    function runSimulation(
+        timestamp
+    ) {
+
+        if (runtime.paused)
+            return;
+
+
+        if (
+            timestamp -
+            runtime.lastSimulation <
+            CONFIG.simulationInterval
+        ) {
+
+            return;
+        }
+
+
+        runtime.lastSimulation =
+            timestamp;
+
+
+        safeCall(
+            buildingEngine,
+            "simulate"
+        );
+    }
+
+
+    /* ========================================================
+       CAMERA SMOOTHING
+    ======================================================== */
+
+    function updateCamera() {
+
+        const difference =
+            camera.targetZoom -
+            camera.zoom;
+
+
+        if (
+            Math.abs(
+                difference
+            ) < 0.0005
+        ) {
+
+            camera.zoom =
+                camera.targetZoom;
+
+            return;
+        }
+
+
+        camera.zoom +=
+            difference *
+            0.12;
+
+
+        camera.zoom =
+            clamp(
+                camera.zoom,
+                camera.minZoom,
+                camera.maxZoom
+            );
+    }
+
+
+    /* ========================================================
+       RENDER FALLBACK
+    ======================================================== */
+
+    function fallbackRender() {
+
+        ctx.clearRect(
+            0,
+            0,
+            viewport.width,
+            viewport.height
+        );
+
+
+        ctx.fillStyle =
+            "#101820";
+
+
+        ctx.fillRect(
+            0,
+            0,
+            viewport.width,
+            viewport.height
+        );
+
+
+        ctx.save();
+
+
+        ctx.translate(
+            viewport.width / 2 +
+            camera.x,
+
+            viewport.height / 2 +
+            camera.y
+        );
+
+
+        ctx.scale(
+            camera.zoom,
+            camera.zoom
+        );
+
+
+        drawGroundFallback();
+
+        drawGridFallback();
+
+        drawRoadFallback();
+
+        drawBuildingsFallback();
+
+
+        safeCall(
+            buildingEngine,
+            "drawPreview",
+            ctx
+        );
+
+
+        safeCall(
+            roadEngine,
+            "drawPreview",
+            ctx
+        );
+
+
+        drawSelectionFallback();
+
+
+        ctx.restore();
+    }
+
+
+    /* ========================================================
+       GROUND
+    ======================================================== */
+
+    function drawGroundFallback() {
+
+        ctx.fillStyle =
+            "#293c2f";
+
+
+        ctx.fillRect(
+            -world.halfSize,
+            -world.halfSize,
+            world.size,
+            world.size
+        );
+    }
+
+
+    /* ========================================================
+       GRID
+    ======================================================== */
+
+    function drawGridFallback() {
+
+        const gridSize =
+            100;
+
+
+        const range =
+            world.halfSize;
+
+
+        ctx.strokeStyle =
+            "rgba(255,255,255,.035)";
+
+
+        ctx.lineWidth =
+            1 / camera.zoom;
+
+
+        ctx.beginPath();
+
+
+        for (
+            let x =
+                -range;
+
+            x <= range;
+
+            x += gridSize
+        ) {
+
+            ctx.moveTo(
+                x,
+                -range
+            );
+
+
+            ctx.lineTo(
+                x,
+                range
+            );
+        }
+
+
+        for (
+            let y =
+                -range;
+
+            y <= range;
+
+            y += gridSize
+        ) {
+
+            ctx.moveTo(
+                -range,
+                y
+            );
+
+
+            ctx.lineTo(
+                range,
+                y
+            );
+        }
+
+
+        ctx.stroke();
+    }
+
+
+    /* ========================================================
+       ROADS FALLBACK
+    ======================================================== */
+
+    function drawRoadFallback() {
+
+        for (
+            const road
+            of city.roads
+        ) {
+
+            if (!road)
+                continue;
+
+
+            const points =
+                Array.isArray(
+                    road.points
+                )
+
+                    ? road.points
+
+                    : (
+                        road.x1 !== undefined
+                            ? [
+                                {
+                                    x:
+                                        road.x1,
+
+                                    y:
+                                        road.y1
+                                },
+
+                                {
+                                    x:
+                                        road.x2,
+
+                                    y:
+                                        road.y2
+                                }
+                            ]
+
+                            : []
+                    );
+
+
+            if (
+                points.length < 2
+            ) {
+
+                continue;
+            }
+
+
+            ctx.save();
+
+
+            ctx.lineCap =
+                "round";
+
+
+            ctx.lineJoin =
+                "round";
+
+
+            ctx.strokeStyle =
+                "#20262b";
+
+
+            ctx.lineWidth =
+                safeNumber(
+                    road.width,
+                    24
+                );
+
+
+            ctx.beginPath();
+
+
+            points.forEach(
+                (
+                    point,
+                    index
+                ) => {
+
+                    if (
+                        index === 0
+                    ) {
+
+                        ctx.moveTo(
+                            point.x,
+                            point.y
+                        );
+
+                    } else {
+
+                        ctx.lineTo(
+                            point.x,
+                            point.y
+                        );
+                    }
+                }
+            );
+
+
+            ctx.stroke();
+
+
+            ctx.strokeStyle =
+                "#596168";
+
+
+            ctx.lineWidth =
+                Math.max(
+                    2,
+                    safeNumber(
+                        road.width,
+                        24
+                    ) * 0.08
+                );
+
+
+            ctx.stroke();
+
+
+            ctx.restore();
+        }
+    }
+
+
+    /* ========================================================
+       BUILDINGS FALLBACK
+    ======================================================== */
+
+    function drawBuildingsFallback() {
+
+        for (
+            const building
+            of city.buildings
+        ) {
+
+            const data =
+                BuildingEngine.TYPES?.[
+                    building.type
+                ];
+
+
+            if (!data)
+                continue;
+
+
+            const size =
+                safeNumber(
+                    building.size,
+                    data.size || 40
+                );
+
+
+            ctx.save();
+
+
+            ctx.translate(
+                safeNumber(
+                    building.x
+                ),
+
+                safeNumber(
+                    building.y
+                )
+            );
+
+
+            ctx.fillStyle =
+                data.color ||
+                "#59636d";
+
+
+            ctx.fillRect(
+                -size / 2,
+                -size / 2,
+                size,
+                size
+            );
+
+
+            ctx.font =
+                `${Math.max(
+                    12,
+                    size * 0.42
+                )}px Arial`;
+
+
+            ctx.textAlign =
+                "center";
+
+
+            ctx.textBaseline =
+                "middle";
+
+
+            ctx.fillText(
+                data.icon ||
+                "🏢",
+                0,
+                0
+            );
+
+
+            ctx.restore();
+        }
+    }
+
+
+    /* ========================================================
+       SELECTION FALLBACK
+    ======================================================== */
+
+    function drawSelectionFallback() {
+
+        const building =
+            buildingEngine
+                ?.selectedBuilding;
+
+
+        if (!building)
+            return;
+
+
+        const size =
+            safeNumber(
+                building.size,
+                40
+            );
+
+
+        ctx.save();
+
+
+        ctx.strokeStyle =
+            "rgba(255,255,255,.95)";
+
+
+        ctx.lineWidth =
+            2 / camera.zoom;
+
+
+        ctx.setLineDash([
+            6 / camera.zoom,
+            5 / camera.zoom
+        ]);
+
+
+        ctx.strokeRect(
+
+            building.x -
+                size / 2 -
+                6,
+
+            building.y -
+                size / 2 -
+                6,
+
+            size + 12,
+
+            size + 12
+        );
+
+
+        ctx.setLineDash([]);
+
+
+        ctx.restore();
+    }
+
+
+    /* ========================================================
+       RENDER
+    ======================================================== */
+
+    function render() {
+
+        if (
+            renderer &&
+            typeof renderer.render ===
+                "function"
+        ) {
+
+            try {
+
+                renderer.render();
+
+                return;
+
+            } catch (error) {
+
+                console.warn(
+                    "Renderer.render() failed; using fallback.",
+                    error
+                );
+            }
+        }
+
+
+        if (
+            renderer &&
+            typeof renderer.draw ===
+                "function"
+        ) {
+
+            try {
+
+                renderer.draw();
+
+                return;
+
+            } catch (error) {
+
+                console.warn(
+                    "Renderer.draw() failed; using fallback.",
+                    error
+                );
+            }
+        }
+
+
+        fallbackRender();
+    }
+
+
+    /* ========================================================
+       MAIN LOOP
+    ======================================================== */
+
+    function gameLoop(
+        timestamp
+    ) {
+
+        if (
+            runtime.destroyed
+        ) {
+
+            return;
+        }
+
+
+        const rawDelta =
+            timestamp -
+            runtime.lastFrame;
+
+
+        runtime.lastFrame =
+            timestamp;
+
+
+        const delta =
+            clamp(
+                rawDelta,
+                0,
+                CONFIG.maxDelta
+            );
+
+
+        runtime.frameCount++;
+
+
+        if (delta > 0) {
+
+            const instantFPS =
+                1000 / delta;
+
+
+            runtime.fps +=
+                (
+                    instantFPS -
+                    runtime.fps
+                ) *
+                0.05;
+        }
+
+
+        /*
+         * Mobile performance safeguard.
+         */
+
+        runtime.lowPerformanceMode =
+            runtime.fps < 28;
+
+
+        updateCamera();
+
+        runSimulation(
+            timestamp
+        );
+
+        autosave(
+            timestamp
+        );
+
+
+        /*
+         * Renderer receives frame data
+         * when supported.
+         */
+
+        safeCall(
+            renderer,
+            "update",
+            delta
+        );
+
+
+        render();
+
+
+        /*
+         * HUD isn't updated every frame.
+         */
+
+        updateHUD();
+
+
+        requestAnimationFrame(
+            gameLoop
+        );
+    }
+
+
+    /* ========================================================
+       KEYBOARD SHORTCUTS
+    ======================================================== */
+
+    function handleKeyboard(
+        event
+    ) {
+
+        if (
+            event.target instanceof
+            HTMLInputElement ||
+            event.target instanceof
+            HTMLTextAreaElement
+        ) {
+
+            return;
+        }
+
+
+        switch (
+            event.key.toLowerCase()
+        ) {
+
+            case "escape":
+
+                clearTool();
+
+                closeBuildingPanel();
+
+                break;
+
+
+            case "b":
+
+                buildMenu?.classList.toggle(
+                    "open"
+                );
+
+                break;
+
+
+            case "p":
+
+                togglePause();
+
+                break;
+
+
+            case "+":
+
+            case "=":
+
+                zoomIn();
+
+                break;
+
+
+            case "-":
+
+            case "_":
+
+                zoomOut();
+
+                break;
+
+
+            case "0":
+
+                resetCamera();
+
+                break;
+
+
+            case "1":
+
+                setSpeed(1);
+
+                break;
+
+
+            case "2":
+
+                setSpeed(2);
+
+                break;
+
+
+            case "4":
+
+                setSpeed(4);
+
+                break;
+
+
+            case "8":
+
+                setSpeed(8);
+
+                break;
+        }
+    }
+
+
+    window.addEventListener(
+        "keydown",
+        handleKeyboard
+    );
+
+
+    /* ========================================================
+       MOBILE PERFORMANCE
+    ======================================================== */
+
+    document.documentElement
+        .style
+        .setProperty(
+            "touch-action",
+            "none"
+        );
+
+
+    canvas.style.touchAction =
+        "none";
+
+
+    canvas.style.userSelect =
+        "none";
+
+
+    canvas.style.webkitUserSelect =
+        "none";
+
+
+    /*
+     * Prevent accidental browser
+     * scrolling while interacting
+     * with the game.
+     */
+
+    canvas.addEventListener(
+        "touchstart",
+        event => {
+
+            if (
+                event.cancelable
+            ) {
+
+                event.preventDefault();
+            }
+
+        },
+        {
+            passive: false
+        }
+    );
+
+
+    canvas.addEventListener(
+        "touchmove",
+        event => {
+
+            if (
+                event.cancelable
+            ) {
+
+                event.preventDefault();
+            }
+
+        },
+        {
+            passive: false
+        }
+    );
+
+
+    /* ========================================================
+       VISIBILITY
+    ======================================================== */
+
+    function handleVisibility() {
+
+        if (
+            document.hidden
+        ) {
+
+            runtime.lastFrame =
+                performance.now();
+
+            runtime.lastSimulation =
+                performance.now();
+
+            return;
+        }
+
+
+        runtime.lastFrame =
+            performance.now();
+
+
+        runtime.lastSimulation =
+            performance.now();
+    }
+
+
+    document.addEventListener(
+        "visibilitychange",
+        handleVisibility
+    );
+
+
+    /* ========================================================
+       DESTROY
+    ======================================================== */
+
+    function destroy() {
+
+        if (
+            runtime.destroyed
+        ) {
+
+            return;
+        }
+
+
+        runtime.destroyed =
+            true;
+
+
+        runtime.running =
+            false;
+
+
+        metroCity.running =
+            false;
+
+
+        clearTimeout(
+            notificationTimer
+        );
+
+
+        window.removeEventListener(
+            "resize",
+            resizeCanvas
+        );
+
+
+        window.removeEventListener(
+            "keydown",
+            handleKeyboard
+        );
+
+
+        window.removeEventListener(
+            "metrocity:notification",
+            onNotification
+        );
+
+
+        window.removeEventListener(
+            "metrocity:buildingCreated",
+            onBuildingCreated
+        );
+
+
+        window.removeEventListener(
+            "metrocity:buildingUpgraded",
+            onBuildingUpgraded
+        );
+
+
+        window.removeEventListener(
+            "metrocity:buildingDemolished",
+            onBuildingDemolished
+        );
+
+
+        window.removeEventListener(
+            "metrocity:roadCreated",
+            onRoadCreated
+        );
+
+
+        window.removeEventListener(
+            "metrocity:cityUpdated",
+            onCityUpdated
+        );
+
+
+        window.removeEventListener(
+            "metrocity:simulationTick",
+            onSimulationTick
+        );
+
+
+        safeCall(
+            inputManager,
+            "destroy"
+        );
+
+
+        safeCall(
+            uiManager,
+            "destroy"
+        );
+
+
+        safeCall(
+            renderer,
+            "destroy"
+        );
+
+
+        safeCall(
+            roadEngine,
+            "destroy"
+        );
+
+
+        safeCall(
+            buildingEngine,
+            "destroy"
+        );
+
+
+        dispatch(
+            "metrocity:destroyed"
+        );
+    }
+
+
+    /* ========================================================
+       INITIAL STATE
+    ======================================================== */
+
+    setSpeed(1);
+
+    updateHUD(true);
+
+
+    /*
+     * Let engines perform their
+     * initial calculation.
+     */
+
+    safeCall(
+        buildingEngine,
+        "recalculateCity"
+    );
+
+
+    safeCall(
+        renderer,
+        "resize",
+        viewport.width,
+        viewport.height,
+        viewport.dpr
+    );
+
+
+    safeCall(
+        uiManager,
+        "init"
+    );
+
+
+    safeCall(
+        inputManager,
+        "init"
+    );
+
+
+    showNotification(
+        "Welcome to MetroCity",
+        "Tap BUILD to start creating your city."
+    );
+
+
+    dispatch(
+        "metrocity:ready",
+        {
+            version:
+                CONFIG.version
+        }
+    );
+
+
+    /* ========================================================
+       START LOOP
+    ======================================================== */
+
+    runtime.lastFrame =
+        performance.now();
+
+
+    runtime.lastSimulation =
+        performance.now();
+
+
+    runtime.lastAutosave =
+        performance.now();
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+
+    console.log(
+        `MetroCity V${CONFIG.version} initialized successfully.`
+    );
+
+
+    /* ========================================================
+       LOCAL FUNCTIONS
+    ======================================================== */
+
+    function createCity() {
+
+        return {
+
+            name:
+                CONFIG.defaultCityName,
+
+            money:
+                CONFIG.startingMoney,
+
+            population:
+                CONFIG.startingPopulation,
+
+            happiness:
+                CONFIG.startingHappiness,
+
+            power:
+                CONFIG.startingPower,
+
+            workers:
+                0,
+
+            currentTool:
+                null,
+
+            roads:
+                [],
+
+            buildings:
+                [],
+
+            intersections:
+                [],
+
+            statistics:
+                createStatistics()
+        };
+    }
+
+
+    function createStatistics() {
+
+        return {
 
             income:
                 0,
@@ -1846,515 +3977,70 @@ document.addEventListener("DOMContentLoaded", () => {
             playTime:
                 0
         };
-
-
-        camera.x =
-            0;
-
-        camera.y =
-            0;
-
-        camera.zoom =
-            1;
-
-        camera.targetZoom =
-            1;
-
-
-        closeBuildingPanel();
-
-        clearTool();
-
-        updateHUD();
-
-
-        showNotification(
-            "New City",
-            `${name} has been created.`
-        );
     }
 
 
-    /* ========================================================
-       DRAW GROUND
-    ======================================================== */
-
-    function drawGround() {
-
-        ctx.fillStyle =
-            "#293c2f";
-
-
-        ctx.fillRect(
-            -world.size / 2,
-            -world.size / 2,
-            world.size,
-            world.size
-        );
-    }
-
-
-    /* ========================================================
-       DRAW GRID
-    ======================================================== */
-
-    function drawGrid() {
-
-        const gridSize =
-            100;
-
-        const range =
-            1200;
-
-
-        ctx.strokeStyle =
-            "rgba(255,255,255,.035)";
-
-        ctx.lineWidth =
-            1;
-
-
-        for (
-            let x = -range;
-            x <= range;
-            x += gridSize
-        ) {
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                x,
-                -range
-            );
-
-            ctx.lineTo(
-                x,
-                range
-            );
-
-            ctx.stroke();
-        }
-
-
-        for (
-            let y = -range;
-            y <= range;
-            y += gridSize
-        ) {
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                -range,
-                y
-            );
-
-            ctx.lineTo(
-                range,
-                y
-            );
-
-            ctx.stroke();
-        }
-    }
-
-
-    /* ========================================================
-       DRAW ROADS
-    ======================================================== */
-
-    function drawRoads() {
-
-        /*
-         * RoadEngine can draw itself if
-         * it exposes draw().
-         */
-
-        if (
-            typeof roadEngine.draw ===
-            "function"
-        ) {
-
-            roadEngine.draw(
-                ctx
-            );
-
-            return;
-        }
-
-
-        /*
-         * Fallback renderer.
-         */
-
-        for (
-            const road
-            of city.roads
-        ) {
-
-            if (
-                !road ||
-                !road.points ||
-                road.points.length < 2
-            ) {
-
-                continue;
-            }
-
-
-            ctx.save();
-
-
-            ctx.lineCap =
-                "round";
-
-            ctx.lineJoin =
-                "round";
-
-
-            ctx.strokeStyle =
-                "#20262b";
-
-            ctx.lineWidth =
-                (road.width || 24);
-
-
-            ctx.beginPath();
-
-
-            road.points.forEach(
-                (point, index) => {
-
-                    if (
-                        index === 0
-                    ) {
-
-                        ctx.moveTo(
-                            point.x,
-                            point.y
-                        );
-
-                    } else {
-
-                        ctx.lineTo(
-                            point.x,
-                            point.y
-                        );
-                    }
-                }
-            );
-
-
-            ctx.stroke();
-
-
-            ctx.restore();
-        }
-    }
-
-
-    /* ========================================================
-       DRAW BUILDINGS
-    ======================================================== */
-
-    function drawBuildings() {
-
-        if (
-            typeof buildingEngine.draw ===
-            "function"
-        ) {
-
-            buildingEngine.draw(
-                ctx
-            );
-
-            return;
-        }
-
-
-        for (
-            const building
-            of city.buildings
-        ) {
-
-            const data =
-                BuildingEngine.TYPES?.[
-                    building.type
-                ];
-
-
-            if (!data)
-                continue;
-
-
-            ctx.save();
-
-
-            ctx.translate(
-                building.x,
-                building.y
-            );
-
-
-            const size =
-                building.size ||
-                data.size ||
-                40;
-
-
-            ctx.fillStyle =
-                data.color ||
-                "#59636d";
-
-
-            ctx.fillRect(
-                -size / 2,
-                -size / 2,
-                size,
-                size
-            );
-
-
-            ctx.font =
-                `${Math.max(
-                    12,
-                    size * .45
-                )}px Arial`;
-
-
-            ctx.textAlign =
-                "center";
-
-            ctx.textBaseline =
-                "middle";
-
-
-            ctx.fillText(
-                data.icon ||
-                "🏢",
-                0,
-                0
-            );
-
-
-            ctx.restore();
-        }
-    }
-
-
-    /* ========================================================
-       DRAW LOOP
-    ======================================================== */
-
-    let lastTime =
-        performance.now();
-
-
-    function draw(
-        timestamp
+    function normalizeStatistics(
+        statistics
     ) {
 
-        const delta =
-            timestamp -
-            lastTime;
+        const defaults =
+            createStatistics();
 
 
-        lastTime =
-            timestamp;
+        const source =
+            statistics || {};
 
 
-        ctx.clearRect(
-            0,
-            0,
-            width,
-            height
-        );
+        return {
 
+            income:
+                safeNumber(
+                    source.income,
+                    defaults.income
+                ),
 
-        ctx.fillStyle =
-            "#101820";
+            expenses:
+                safeNumber(
+                    source.expenses,
+                    defaults.expenses
+                ),
 
+            totalIncome:
+                safeNumber(
+                    source.totalIncome,
+                    defaults.totalIncome
+                ),
 
-        ctx.fillRect(
-            0,
-            0,
-            width,
-            height
-        );
+            totalExpenses:
+                safeNumber(
+                    source.totalExpenses,
+                    defaults.totalExpenses
+                ),
 
+            buildingsBuilt:
+                safeNumber(
+                    source.buildingsBuilt,
+                    defaults.buildingsBuilt
+                ),
 
-        ctx.save();
+            buildingsDemolished:
+                safeNumber(
+                    source.buildingsDemolished,
+                    defaults.buildingsDemolished
+                ),
 
+            roadsBuilt:
+                safeNumber(
+                    source.roadsBuilt,
+                    defaults.roadsBuilt
+                ),
 
-        ctx.translate(
-            width / 2 +
-            camera.x,
-
-            height / 2 +
-            camera.y
-        );
-
-
-        ctx.scale(
-            camera.zoom,
-            camera.zoom
-        );
-
-
-        drawGround();
-
-        drawGrid();
-
-        drawRoads();
-
-        drawBuildings();
-
-
-        /*
-         * Building preview.
-         */
-
-        if (
-            typeof buildingEngine
-                .drawPreview ===
-            "function"
-        ) {
-
-            buildingEngine.drawPreview(
-                ctx
-            );
-        }
-
-
-        /*
-         * Road preview.
-         */
-
-        if (
-            typeof roadEngine
-                .drawPreview ===
-            "function"
-        ) {
-
-            roadEngine.drawPreview(
-                ctx
-            );
-        }
-
-
-        /*
-         * Selected building.
-         */
-
-        if (
-            buildingEngine
-                .selectedBuilding
-        ) {
-
-            const building =
-                buildingEngine
-                    .selectedBuilding;
-
-
-            ctx.save();
-
-
-            ctx.strokeStyle =
-                "rgba(255,255,255,.95)";
-
-
-            ctx.lineWidth =
-                2;
-
-
-            ctx.setLineDash([
-                6,
-                5
-            ]);
-
-
-            const size =
-                building.size ||
-                40;
-
-
-            ctx.strokeRect(
-
-                building.x -
-                    size / 2 -
-                    6,
-
-                building.y -
-                    size / 2 -
-                    6,
-
-                size + 12,
-
-                size + 12
-            );
-
-
-            ctx.setLineDash([]);
-
-
-            ctx.restore();
-        }
-
-
-        ctx.restore();
-
-
-        /*
-         * Smooth zoom.
-         */
-
-        camera.zoom +=
-            (
-                camera.targetZoom -
-                camera.zoom
-            ) *
-            0.12;
-
-
-        /*
-         * Update statistics.
-         */
-
-        if (
-            !window.metroCity.paused
-        ) {
-
-            city.statistics.playTime +=
-                delta;
-        }
-
-
-        requestAnimationFrame(
-            draw
-        );
+            playTime:
+                safeNumber(
+                    source.playTime,
+                    defaults.playTime
+                )
+        };
     }
-
-
-    /* ========================================================
-       INITIALIZE
-    ======================================================== */
-
-    updateHUD();
-
-
-    showNotification(
-        "Welcome to MetroCity",
-        "Tap BUILD to start creating your city."
-    );
-
-
-    requestAnimationFrame(
-        draw
-    );
-
-
-    console.log(
-        "MetroCity V5 initialized successfully."
-    );
-
-});
+}
