@@ -1,14 +1,16 @@
-import { RoadEngine } from "./RoadEngine.js";
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    >
 
-    <title>MetroCity</title>
+    <meta name="theme-color" content="#101820">
+
+    <title>MetroCity V5</title>
 
     <style>
         * {
@@ -23,25 +25,50 @@ import { RoadEngine } from "./RoadEngine.js";
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #10151c;
-            font-family: Arial, Helvetica, sans-serif;
+            background: #101820;
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
         }
+
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        /* =====================================================
+           GAME CANVAS
+        ===================================================== */
 
         #game {
             position: fixed;
             inset: 0;
+
             width: 100%;
             height: 100%;
+
             display: block;
+
             touch-action: none;
+
+            cursor: default;
         }
 
-        /* =========================
+        /* =====================================================
            TOP HUD
-        ========================= */
+        ===================================================== */
 
         .topbar {
             position: fixed;
+
             top: 0;
             left: 0;
             right: 0;
@@ -50,39 +77,72 @@ import { RoadEngine } from "./RoadEngine.js";
 
             display: flex;
             align-items: center;
+
             gap: 12px;
 
-            padding: 10px 14px;
+            padding:
+                10px 14px;
+
+            background:
+                rgba(9, 13, 19, 0.88);
+
+            border-bottom:
+                1px solid rgba(255,255,255,0.08);
+
+            backdrop-filter:
+                blur(16px);
+
+            -webkit-backdrop-filter:
+                blur(16px);
+
+            z-index: 100;
+        }
+
+        /* =====================================================
+           LOGO
+        ===================================================== */
+
+        .logo {
+            flex-shrink: 0;
+
+            min-width: 130px;
 
             color: white;
 
-            background: rgba(10, 14, 20, 0.82);
-            backdrop-filter: blur(14px);
-
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-
-            z-index: 10;
-        }
-
-        .logo {
-            min-width: 125px;
             font-size: 20px;
-            font-weight: 800;
+            font-weight: 900;
+
             letter-spacing: 0.5px;
         }
 
         .logo span {
-            opacity: 0.55;
-            font-size: 11px;
             display: block;
+
             margin-top: 2px;
-            font-weight: 500;
+
+            color:
+                rgba(255,255,255,0.45);
+
+            font-size: 9px;
+
+            font-weight: 600;
+
+            letter-spacing: 1.4px;
         }
+
+        /* =====================================================
+           STATS
+        ===================================================== */
 
         .stats {
             display: flex;
+
+            align-items: center;
+
             gap: 8px;
+
             overflow-x: auto;
+
             scrollbar-width: none;
         }
 
@@ -91,273 +151,658 @@ import { RoadEngine } from "./RoadEngine.js";
         }
 
         .stat {
-            min-width: 105px;
-            padding: 9px 12px;
+            flex-shrink: 0;
+
+            min-width: 108px;
+
+            padding:
+                8px 12px;
 
             border-radius: 12px;
 
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.06);
+            background:
+                rgba(255,255,255,0.06);
 
-            white-space: nowrap;
+            border:
+                1px solid rgba(255,255,255,0.06);
+
+            color: white;
         }
 
         .stat small {
             display: block;
-            opacity: 0.55;
-            font-size: 10px;
+
             margin-bottom: 3px;
+
+            color:
+                rgba(255,255,255,0.48);
+
+            font-size: 9px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.5px;
         }
 
         .stat strong {
-            font-size: 14px;
-        }
-
-        /* =========================
-           NOTIFICATION
-        ========================= */
-
-        .notification {
-            position: fixed;
-            top: 84px;
-            right: 14px;
-
-            width: min(330px, calc(100vw - 28px));
-
-            padding: 13px 15px;
+            display: block;
 
             color: white;
 
-            background: rgba(14, 19, 27, 0.9);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
+            font-size: 14px;
 
-            backdrop-filter: blur(14px);
+            font-weight: 800;
+        }
 
-            transform: translateY(-20px);
+        /* =====================================================
+           NOTIFICATION
+        ===================================================== */
+
+        .notification {
+            position: fixed;
+
+            top: 84px;
+            right: 14px;
+
+            width:
+                min(340px, calc(100vw - 28px));
+
+            padding:
+                14px 16px;
+
+            color: white;
+
+            background:
+                rgba(10,15,22,0.94);
+
+            border:
+                1px solid rgba(255,255,255,0.08);
+
+            border-radius: 15px;
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            box-shadow:
+                0 15px 40px rgba(0,0,0,0.28);
+
+            transform:
+                translateY(-15px);
+
             opacity: 0;
+
             pointer-events: none;
 
-            transition: 0.25s ease;
+            transition:
+                opacity .25s ease,
+                transform .25s ease;
 
-            z-index: 20;
+            z-index: 300;
         }
 
         .notification.show {
-            transform: translateY(0);
             opacity: 1;
+
+            transform:
+                translateY(0);
         }
 
-        /* =========================
+        .notification strong {
+            display: block;
+
+            margin-bottom: 4px;
+
+            font-size: 14px;
+        }
+
+        .notification div {
+            color:
+                rgba(255,255,255,0.65);
+
+            font-size: 12px;
+
+            line-height: 1.4;
+        }
+
+        /* =====================================================
            BUILD MENU
-        ========================= */
+        ===================================================== */
 
         .build-menu {
             position: fixed;
+
             left: 50%;
-            bottom: 82px;
+            bottom: 84px;
 
-            transform: translateX(-50%) translateY(30px);
+            width:
+                min(720px, calc(100vw - 24px));
 
-            width: min(720px, calc(100vw - 24px));
+            padding: 15px;
 
-            padding: 14px;
+            background:
+                rgba(10,15,22,0.95);
 
-            background: rgba(12, 17, 24, 0.94);
-            border: 1px solid rgba(255,255,255,0.08);
+            border:
+                1px solid rgba(255,255,255,0.08);
 
             border-radius: 20px;
 
-            backdrop-filter: blur(18px);
+            backdrop-filter:
+                blur(20px);
+
+            -webkit-backdrop-filter:
+                blur(20px);
+
+            box-shadow:
+                0 20px 60px rgba(0,0,0,0.35);
+
+            transform:
+                translateX(-50%)
+                translateY(25px);
 
             opacity: 0;
+
             pointer-events: none;
 
-            transition: 0.25s ease;
+            transition:
+                opacity .25s ease,
+                transform .25s ease;
 
-            z-index: 30;
+            z-index: 200;
         }
 
         .build-menu.open {
-            transform: translateX(-50%) translateY(0);
             opacity: 1;
+
             pointer-events: auto;
+
+            transform:
+                translateX(-50%)
+                translateY(0);
+        }
+
+        .build-header {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 12px;
         }
 
         .build-title {
             color: white;
-            font-weight: 700;
-            margin-bottom: 10px;
+
+            font-size: 15px;
+
+            font-weight: 800;
+        }
+
+        .build-subtitle {
+            margin-top: 3px;
+
+            color:
+                rgba(255,255,255,0.42);
+
+            font-size: 10px;
+        }
+
+        .close-build {
+            width: 32px;
+            height: 32px;
+
+            border: 0;
+
+            border-radius: 10px;
+
+            background:
+                rgba(255,255,255,0.07);
+
+            color: white;
+
+            cursor: pointer;
         }
 
         .build-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
             gap: 8px;
         }
 
         .build-item {
-            min-height: 70px;
+            min-height: 74px;
 
-            border: 1px solid rgba(255,255,255,0.07);
+            padding: 8px;
+
+            border:
+                1px solid rgba(255,255,255,0.06);
+
             border-radius: 14px;
 
-            background: rgba(255,255,255,0.06);
+            background:
+                rgba(255,255,255,0.055);
+
             color: white;
 
             cursor: pointer;
+
+            transition:
+                transform .12s ease,
+                background .12s ease,
+                border-color .12s ease;
+        }
+
+        .build-item:hover {
+            background:
+                rgba(255,255,255,0.09);
         }
 
         .build-item:active {
-            transform: scale(0.96);
-            background: rgba(255,255,255,0.13);
+            transform:
+                scale(.95);
+        }
+
+        .build-item.selected {
+            background:
+                rgba(255,255,255,0.12);
+
+            border-color:
+                rgba(255,255,255,0.25);
         }
 
         .build-item .icon {
             display: block;
+
+            margin-bottom: 5px;
+
             font-size: 24px;
-            margin-bottom: 4px;
         }
 
-        .build-item span:last-child {
+        .build-item .name {
+            display: block;
+
             font-size: 11px;
-            opacity: 0.75;
+
+            font-weight: 700;
         }
 
-        /* =========================
-           BOTTOM TOOLBAR
-        ========================= */
+        .build-item .price {
+            display: block;
 
-        .toolbar {
+            margin-top: 3px;
+
+            color:
+                rgba(255,255,255,0.42);
+
+            font-size: 9px;
+        }
+
+        /* =====================================================
+           CURRENT TOOL INDICATOR
+        ===================================================== */
+
+        .tool-indicator {
             position: fixed;
-            left: 50%;
-            bottom: 10px;
 
-            transform: translateX(-50%);
+            top: 84px;
+            left: 14px;
 
-            width: min(760px, calc(100vw - 20px));
+            padding:
+                8px 11px;
 
-            height: 62px;
+            border-radius: 11px;
 
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
+            background:
+                rgba(10,15,22,0.85);
 
-            padding: 6px;
+            border:
+                1px solid rgba(255,255,255,0.07);
 
-            background: rgba(10, 14, 20, 0.92);
-            border: 1px solid rgba(255,255,255,0.08);
-
-            border-radius: 18px;
-
-            backdrop-filter: blur(18px);
-
-            z-index: 25;
-        }
-
-        .tool {
-            width: 58px;
-            height: 50px;
-
-            border: 0;
-            border-radius: 13px;
-
-            background: transparent;
             color: white;
 
-            cursor: pointer;
+            font-size: 11px;
+
+            font-weight: 700;
+
+            opacity: 0;
+
+            transform:
+                translateY(-8px);
+
+            transition:
+                .2s ease;
+
+            pointer-events: none;
+
+            z-index: 150;
         }
 
-        .tool.active,
-        .tool:active {
-            background: rgba(255,255,255,0.1);
+        .tool-indicator.show {
+            opacity: 1;
+
+            transform:
+                translateY(0);
         }
 
-        .tool-icon {
-            display: block;
-            font-size: 21px;
-            margin-bottom: 2px;
-        }
-
-        .tool-label {
-            display: block;
-            font-size: 9px;
-            opacity: 0.55;
-        }
-
-        /* =========================
+        /* =====================================================
            CAMERA CONTROLS
-        ========================= */
+        ===================================================== */
 
         .camera-controls {
             position: fixed;
+
             right: 14px;
-            bottom: 86px;
+            bottom: 88px;
 
             display: flex;
+
             flex-direction: column;
+
             gap: 7px;
 
-            z-index: 15;
+            z-index: 120;
         }
 
         .camera-btn {
             width: 44px;
             height: 44px;
 
-            border: 1px solid rgba(255,255,255,0.08);
+            border:
+                1px solid rgba(255,255,255,0.08);
+
             border-radius: 12px;
 
-            background: rgba(10,14,20,0.82);
+            background:
+                rgba(10,14,20,0.85);
+
             color: white;
 
-            font-size: 18px;
+            font-size: 19px;
+
+            cursor: pointer;
+
+            backdrop-filter:
+                blur(10px);
+        }
+
+        .camera-btn:active {
+            transform:
+                scale(.94);
+        }
+
+        /* =====================================================
+           BOTTOM TOOLBAR
+        ===================================================== */
+
+        .toolbar {
+            position: fixed;
+
+            left: 50%;
+            bottom: 10px;
+
+            transform:
+                translateX(-50%);
+
+            width:
+                min(760px, calc(100vw - 20px));
+
+            height: 62px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-around;
+
+            padding: 6px;
+
+            background:
+                rgba(9,13,19,0.94);
+
+            border:
+                1px solid rgba(255,255,255,0.08);
+
+            border-radius: 18px;
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            z-index: 100;
+        }
+
+        .tool {
+            width: 60px;
+            height: 50px;
+
+            border: 0;
+
+            border-radius: 13px;
+
+            background:
+                transparent;
+
+            color: white;
+
+            cursor: pointer;
+
+            transition:
+                background .15s ease,
+                transform .12s ease;
+        }
+
+        .tool:hover {
+            background:
+                rgba(255,255,255,0.06);
+        }
+
+        .tool:active {
+            transform:
+                scale(.94);
+        }
+
+        .tool.active {
+            background:
+                rgba(255,255,255,0.10);
+        }
+
+        .tool-icon {
+            display: block;
+
+            margin-bottom: 3px;
+
+            font-size: 20px;
+        }
+
+        .tool-label {
+            display: block;
+
+            color:
+                rgba(255,255,255,0.55);
+
+            font-size: 8px;
+
+            font-weight: 700;
+
+            letter-spacing: .3px;
+        }
+
+        /* =====================================================
+           SPEED CONTROL
+        ===================================================== */
+
+        .speed-control {
+            position: fixed;
+
+            left: 14px;
+            bottom: 88px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 5px;
+
+            padding: 5px;
+
+            background:
+                rgba(10,14,20,0.86);
+
+            border:
+                1px solid rgba(255,255,255,0.07);
+
+            border-radius: 13px;
+
+            z-index: 120;
+        }
+
+        .speed-btn {
+            min-width: 38px;
+            height: 34px;
+
+            border: 0;
+
+            border-radius: 9px;
+
+            background:
+                transparent;
+
+            color:
+                rgba(255,255,255,0.6);
+
+            font-size: 11px;
+
+            font-weight: 800;
+
             cursor: pointer;
         }
 
-        /* =========================
+        .speed-btn.active {
+            background:
+                rgba(255,255,255,0.10);
+
+            color: white;
+        }
+
+        /* =====================================================
            MOBILE
-        ========================= */
+        ===================================================== */
 
         @media (max-width: 600px) {
 
             .topbar {
                 height: 64px;
-                padding: 8px 10px;
+
+                padding:
+                    8px 10px;
             }
 
             .logo {
                 min-width: 92px;
-                font-size: 17px;
+
+                font-size: 16px;
             }
 
             .logo span {
-                font-size: 9px;
+                font-size: 8px;
             }
 
             .stat {
-                min-width: 92px;
-                padding: 8px 9px;
+                min-width: 88px;
+
+                padding:
+                    7px 9px;
+            }
+
+            .stat small {
+                font-size: 8px;
             }
 
             .stat strong {
                 font-size: 12px;
             }
 
+            .build-menu {
+                bottom: 80px;
+
+                padding: 12px;
+            }
+
             .build-grid {
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns:
+                    repeat(4, 1fr);
+
+                gap: 6px;
             }
 
             .build-item {
-                min-height: 62px;
+                min-height: 64px;
+
+                padding: 6px;
+            }
+
+            .build-item .icon {
+                font-size: 20px;
+            }
+
+            .build-item .name {
+                font-size: 9px;
+            }
+
+            .build-item .price {
+                display: none;
+            }
+
+            .toolbar {
+                width:
+                    calc(100vw - 12px);
+
+                bottom: 6px;
+
+                height: 58px;
             }
 
             .tool {
-                width: 48px;
+                width: 50px;
             }
 
             .camera-controls {
-                bottom: 84px;
+                right: 9px;
+
+                bottom: 76px;
+            }
+
+            .camera-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .speed-control {
+                left: 9px;
+
+                bottom: 76px;
+            }
+
+            .speed-btn {
+                min-width: 34px;
+            }
+
+            .notification {
+                top: 72px;
+
+                right: 9px;
+
+                width:
+                    calc(100vw - 18px);
             }
         }
     </style>
@@ -365,15 +810,22 @@ import { RoadEngine } from "./RoadEngine.js";
 
 <body>
 
-    <!-- 3D GAME -->
+    <!-- =====================================================
+         GAME CANVAS
+    ====================================================== -->
+
     <canvas id="game"></canvas>
 
-    <!-- TOP HUD -->
+
+    <!-- =====================================================
+         TOP HUD
+    ====================================================== -->
+
     <header class="topbar">
 
         <div class="logo">
             METROCITY
-            <span>CITY SIMULATOR</span>
+            <span>CITY SIMULATOR • V5</span>
         </div>
 
         <div class="stats">
@@ -402,234 +854,1005 @@ import { RoadEngine } from "./RoadEngine.js";
 
     </header>
 
-    <!-- NOTIFICATION -->
-    <div id="notification" class="notification">
-        <strong id="notificationTitle">Welcome to MetroCity</strong>
+
+    <!-- =====================================================
+         TOOL INDICATOR
+    ====================================================== -->
+
+    <div
+        id="toolIndicator"
+        class="tool-indicator"
+    >
+        Tool: Select
+    </div>
+
+
+    <!-- =====================================================
+         NOTIFICATION
+    ====================================================== -->
+
+    <div
+        id="notification"
+        class="notification"
+    >
+
+        <strong id="notificationTitle">
+            Welcome to MetroCity
+        </strong>
+
         <div id="notificationText">
             Start building your city.
         </div>
+
     </div>
 
-    <!-- BUILD MENU -->
-    <section id="buildMenu" class="build-menu">
 
-        <div class="build-title">
-            Build
+    <!-- =====================================================
+         BUILD MENU
+    ====================================================== -->
+
+    <section
+        id="buildMenu"
+        class="build-menu"
+    >
+
+        <div class="build-header">
+
+            <div>
+                <div class="build-title">
+                    Construction
+                </div>
+
+                <div class="build-subtitle">
+                    Select something to build
+                </div>
+            </div>
+
+            <button
+                id="closeBuild"
+                class="close-build"
+            >
+                ✕
+            </button>
+
         </div>
+
 
         <div class="build-grid">
 
-            <button class="build-item" data-tool="road">
+            <button
+                class="build-item"
+                data-tool="road"
+            >
                 <span class="icon">🛣️</span>
-                <span>Road</span>
+                <span class="name">Road</span>
+                <span class="price">$20/m</span>
             </button>
 
-            <button class="build-item" data-tool="house">
+
+            <button
+                class="build-item"
+                data-tool="house"
+            >
                 <span class="icon">🏠</span>
-                <span>House</span>
+                <span class="name">House</span>
+                <span class="price">$100</span>
             </button>
 
-            <button class="build-item" data-tool="commercial">
+
+            <button
+                class="build-item"
+                data-tool="commercial"
+            >
                 <span class="icon">🏢</span>
-                <span>Commercial</span>
+                <span class="name">Commercial</span>
+                <span class="price">$250</span>
             </button>
 
-            <button class="build-item" data-tool="industrial">
+
+            <button
+                class="build-item"
+                data-tool="industrial"
+            >
                 <span class="icon">🏭</span>
-                <span>Industrial</span>
+                <span class="name">Industrial</span>
+                <span class="price">$350</span>
             </button>
 
-            <button class="build-item" data-tool="power">
+
+            <button
+                class="build-item"
+                data-tool="power"
+            >
                 <span class="icon">⚡</span>
-                <span>Power</span>
+                <span class="name">Power</span>
+                <span class="price">$2,000</span>
             </button>
 
-            <button class="build-item" data-tool="water">
+
+            <button
+                class="build-item"
+                data-tool="water"
+            >
                 <span class="icon">💧</span>
-                <span>Water</span>
+                <span class="name">Water</span>
+                <span class="price">$1,500</span>
             </button>
 
-            <button class="build-item" data-tool="hospital">
+
+            <button
+                class="build-item"
+                data-tool="hospital"
+            >
                 <span class="icon">🏥</span>
-                <span>Hospital</span>
+                <span class="name">Hospital</span>
+                <span class="price">$5,000</span>
             </button>
 
-            <button class="build-item" data-tool="park">
+
+            <button
+                class="build-item"
+                data-tool="park"
+            >
                 <span class="icon">🌳</span>
-                <span>Park</span>
+                <span class="name">Park</span>
+                <span class="price">$500</span>
             </button>
 
         </div>
 
     </section>
 
-    <!-- CAMERA CONTROLS -->
+
+    <!-- =====================================================
+         CAMERA CONTROLS
+    ====================================================== -->
+
     <div class="camera-controls">
 
-        <button class="camera-btn" id="zoomIn">
+        <button
+            id="zoomIn"
+            class="camera-btn"
+            aria-label="Zoom in"
+        >
             +
         </button>
 
-        <button class="camera-btn" id="resetCamera">
+        <button
+            id="resetCamera"
+            class="camera-btn"
+            aria-label="Reset camera"
+        >
             ◎
         </button>
 
-        <button class="camera-btn" id="zoomOut">
+        <button
+            id="zoomOut"
+            class="camera-btn"
+            aria-label="Zoom out"
+        >
             −
         </button>
 
     </div>
 
-    <!-- BOTTOM TOOLBAR -->
+
+    <!-- =====================================================
+         SIMULATION SPEED
+    ====================================================== -->
+
+    <div class="speed-control">
+
+        <button
+            class="speed-btn active"
+            data-speed="1"
+        >
+            1×
+        </button>
+
+        <button
+            class="speed-btn"
+            data-speed="2"
+        >
+            2×
+        </button>
+
+        <button
+            class="speed-btn"
+            data-speed="4"
+        >
+            4×
+        </button>
+
+        <button
+            class="speed-btn"
+            data-speed="8"
+        >
+            8×
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         BOTTOM TOOLBAR
+    ====================================================== -->
+
     <nav class="toolbar">
 
-        <button class="tool active" id="buildButton">
+        <button
+            class="tool active"
+            id="buildButton"
+        >
             <span class="tool-icon">🏗️</span>
             <span class="tool-label">BUILD</span>
         </button>
 
-        <button class="tool" id="mapButton">
+
+        <button
+            class="tool"
+            id="mapButton"
+        >
             <span class="tool-icon">🗺️</span>
             <span class="tool-label">MAP</span>
         </button>
 
-        <button class="tool" id="cityButton">
+
+        <button
+            class="tool"
+            id="cityButton"
+        >
             <span class="tool-icon">🏙️</span>
             <span class="tool-label">CITY</span>
         </button>
 
-        <button class="tool" id="statsButton">
+
+        <button
+            class="tool"
+            id="statsButton"
+        >
             <span class="tool-icon">📊</span>
             <span class="tool-label">STATS</span>
         </button>
 
-        <button class="tool" id="settingsButton">
+
+        <button
+            class="tool"
+            id="settingsButton"
+        >
             <span class="tool-icon">⚙️</span>
             <span class="tool-label">SETTINGS</span>
         </button>
 
     </nav>
 
+
+    <!-- =====================================================
+         MAIN GAME SCRIPT
+    ====================================================== -->
+
     <script type="module">
 
-        /*
-         * MetroCity V1
-         * Basic browser game foundation.
-         *
-         * Next systems:
-         * Road Engine
-         * Building Engine
-         * Zoning
-         * Citizens
-         * Traffic
-         * Economy
-         */
+        import { RoadEngine }
+            from "./RoadEngine.js";
 
-        const canvas = document.getElementById("game");
-        const ctx = canvas.getContext("2d");
 
-        let width = window.innerWidth;
-        let height = window.innerHeight;
+        /* =====================================================
+           CANVAS
+        ====================================================== */
 
-        function resize() {
+        const canvas =
+            document.getElementById("game");
 
-            width = window.innerWidth;
-            height = window.innerHeight;
+        const ctx =
+            canvas.getContext("2d");
 
-            canvas.width = width * devicePixelRatio;
-            canvas.height = height * devicePixelRatio;
 
-            canvas.style.width = width + "px";
-            canvas.style.height = height + "px";
+        let width =
+            window.innerWidth;
+
+        let height =
+            window.innerHeight;
+
+
+        function resizeCanvas() {
+
+            width =
+                window.innerWidth;
+
+            height =
+                window.innerHeight;
+
+
+            const dpr =
+                Math.min(
+                    window.devicePixelRatio || 1,
+                    2
+                );
+
+
+            canvas.width =
+                width * dpr;
+
+            canvas.height =
+                height * dpr;
+
+
+            canvas.style.width =
+                width + "px";
+
+            canvas.style.height =
+                height + "px";
+
 
             ctx.setTransform(
-                devicePixelRatio,
+                dpr,
                 0,
                 0,
-                devicePixelRatio,
+                dpr,
                 0,
                 0
             );
         }
 
-        window.addEventListener("resize", resize);
-        resize();
 
-        /* =========================
-           CITY WORLD
-        ========================= */
+        window.addEventListener(
+            "resize",
+            resizeCanvas
+        );
+
+
+        resizeCanvas();
+
+
+        /* =====================================================
+           CITY STATE
+        ====================================================== */
 
         const city = {
-    money: 125000,
-    population: 1250,
-    happiness: 82,
-    power: 100,
 
-    currentTool: null,
+            money: 125000,
 
-    roads: [],
-    buildings: [],
-    intersections: []
-};
+            population: 1250,
 
-        /* =========================
+            happiness: 82,
+
+            power: 100,
+
+            currentTool: null,
+
+            roads: [],
+
+            buildings: [],
+
+            intersections: []
+
+        };
+
+
+        /* =====================================================
            CAMERA
-        ========================= */
+        ====================================================== */
 
         const camera = {
+
             x: 0,
+
             y: 0,
+
             zoom: 1,
-            targetZoom: 1
+
+            targetZoom: 1,
+
+            minZoom: 0.45,
+
+            maxZoom: 3
+
         };
 
-        /* =========================
+
+        /* =====================================================
            WORLD
-        ========================= */
+        ====================================================== */
 
         const world = {
-            roads: [],
-            buildings: []
+
+            size: 2400
+
         };
 
-        /* =========================
-           DRAW CITY
-        ========================= */
+
+        /* =====================================================
+           ROAD ENGINE
+        ====================================================== */
+
+        const roadEngine =
+            new RoadEngine(
+                canvas,
+                city,
+                camera
+            );
+
+
+        /* =====================================================
+           BUILD MENU
+        ====================================================== */
+
+        const buildMenu =
+            document.getElementById(
+                "buildMenu"
+            );
+
+
+        const buildButton =
+            document.getElementById(
+                "buildButton"
+            );
+
+
+        const closeBuild =
+            document.getElementById(
+                "closeBuild"
+            );
+
+
+        buildButton.addEventListener(
+            "click",
+            () => {
+
+                buildMenu.classList.toggle(
+                    "open"
+                );
+
+            }
+        );
+
+
+        closeBuild.addEventListener(
+            "click",
+            () => {
+
+                buildMenu.classList.remove(
+                    "open"
+                );
+
+            }
+        );
+
+
+        /* =====================================================
+           BUILD TOOLS
+        ====================================================== */
+
+        document
+            .querySelectorAll(".build-item")
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const tool =
+                            button.dataset.tool;
+
+
+                        city.currentTool =
+                            tool;
+
+
+                        document
+                            .querySelectorAll(
+                                ".build-item"
+                            )
+                            .forEach(item => {
+
+                                item.classList.remove(
+                                    "selected"
+                                );
+
+                            });
+
+
+                        button.classList.add(
+                            "selected"
+                        );
+
+
+                        buildMenu.classList.remove(
+                            "open"
+                        );
+
+
+                        updateToolIndicator(
+                            tool
+                        );
+
+
+                        showNotification(
+                            "Build Mode",
+                            `Selected: ${formatToolName(tool)}`
+                        );
+
+                    }
+                );
+
+            });
+
+
+        function formatToolName(tool) {
+
+            return tool
+                .charAt(0)
+                .toUpperCase()
+                .concat(
+                    tool.slice(1)
+                );
+        }
+
+
+        /* =====================================================
+           TOOL INDICATOR
+        ====================================================== */
+
+        function updateToolIndicator(tool) {
+
+            const indicator =
+                document.getElementById(
+                    "toolIndicator"
+                );
+
+
+            if (!tool) {
+
+                indicator.classList.remove(
+                    "show"
+                );
+
+                return;
+            }
+
+
+            indicator.textContent =
+                "Tool: " +
+                formatToolName(tool);
+
+
+            indicator.classList.add(
+                "show"
+            );
+        }
+
+
+        /* =====================================================
+           CAMERA ZOOM
+        ====================================================== */
+
+        document
+            .getElementById("zoomIn")
+            .addEventListener(
+                "click",
+                () => {
+
+                    camera.targetZoom =
+                        Math.min(
+                            camera.targetZoom * 1.25,
+                            camera.maxZoom
+                        );
+
+                }
+            );
+
+
+        document
+            .getElementById("zoomOut")
+            .addEventListener(
+                "click",
+                () => {
+
+                    camera.targetZoom =
+                        Math.max(
+                            camera.targetZoom / 1.25,
+                            camera.minZoom
+                        );
+
+                }
+            );
+
+
+        document
+            .getElementById("resetCamera")
+            .addEventListener(
+                "click",
+                () => {
+
+                    camera.x = 0;
+
+                    camera.y = 0;
+
+                    camera.targetZoom = 1;
+
+                }
+            );
+
+
+        /* =====================================================
+           CAMERA PAN
+        ====================================================== */
+
+        let cameraPointer = null;
+
+
+        canvas.addEventListener(
+            "pointerdown",
+            event => {
+
+                /*
+                 * RoadEngine receives the same
+                 * pointer event when Road tool
+                 * is active.
+                 */
+
+                if (
+                    city.currentTool ===
+                    "road"
+                ) {
+
+                    return;
+                }
+
+
+                cameraPointer = {
+
+                    id: event.pointerId,
+
+                    x: event.clientX,
+
+                    y: event.clientY
+
+                };
+
+
+                canvas.setPointerCapture(
+                    event.pointerId
+                );
+
+            }
+        );
+
+
+        canvas.addEventListener(
+            "pointermove",
+            event => {
+
+                if (!cameraPointer)
+                    return;
+
+
+                if (
+                    event.pointerId !==
+                    cameraPointer.id
+                ) {
+
+                    return;
+                }
+
+
+                const dx =
+                    event.clientX -
+                    cameraPointer.x;
+
+
+                const dy =
+                    event.clientY -
+                    cameraPointer.y;
+
+
+                camera.x += dx;
+
+                camera.y += dy;
+
+
+                cameraPointer.x =
+                    event.clientX;
+
+                cameraPointer.y =
+                    event.clientY;
+
+            }
+        );
+
+
+        function stopCameraPointer() {
+
+            cameraPointer = null;
+
+        }
+
+
+        canvas.addEventListener(
+            "pointerup",
+            stopCameraPointer
+        );
+
+
+        canvas.addEventListener(
+            "pointercancel",
+            stopCameraPointer
+        );
+
+
+        /* =====================================================
+           BASIC BUILDING PLACEMENT
+        ====================================================== */
+
+        canvas.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    !city.currentTool ||
+                    city.currentTool === "road"
+                ) {
+
+                    return;
+                }
+
+
+                const rect =
+                    canvas.getBoundingClientRect();
+
+
+                const screenX =
+                    event.clientX -
+                    rect.left;
+
+
+                const screenY =
+                    event.clientY -
+                    rect.top;
+
+
+                const worldX =
+                    (
+                        screenX -
+                        width / 2 -
+                        camera.x
+                    ) /
+                    camera.zoom;
+
+
+                const worldY =
+                    (
+                        screenY -
+                        height / 2 -
+                        camera.y
+                    ) /
+                    camera.zoom;
+
+
+                const building =
+                    createBuilding(
+                        city.currentTool,
+                        worldX,
+                        worldY
+                    );
+
+
+                if (!building)
+                    return;
+
+
+                city.buildings.push(
+                    building
+                );
+
+
+                const cost =
+                    getBuildingCost(
+                        city.currentTool
+                    );
+
+
+                city.money -= cost;
+
+
+                updateHUD();
+
+
+                showNotification(
+                    "Construction Complete",
+                    `${formatToolName(city.currentTool)} placed.`
+                );
+
+            }
+        );
+
+
+        /* =====================================================
+           BUILDING CREATION
+        ====================================================== */
+
+        function createBuilding(
+            type,
+            x,
+            y
+        ) {
+
+            const cost =
+                getBuildingCost(type);
+
+
+            if (
+                city.money < cost
+            ) {
+
+                showNotification(
+                    "Not Enough Money",
+                    "You need more money to build this."
+                );
+
+                return null;
+            }
+
+
+            const settings = {
+
+                house: {
+                    size: 46,
+                    color: "#92715e"
+                },
+
+                commercial: {
+                    size: 52,
+                    color: "#5e7690"
+                },
+
+                industrial: {
+                    size: 58,
+                    color: "#817653"
+                },
+
+                power: {
+                    size: 64,
+                    color: "#80634b"
+                },
+
+                water: {
+                    size: 58,
+                    color: "#507d8c"
+                },
+
+                hospital: {
+                    size: 70,
+                    color: "#815e67"
+                },
+
+                park: {
+                    size: 62,
+                    color: "#4c704d"
+                }
+
+            };
+
+
+            const config =
+                settings[type];
+
+
+            if (!config)
+                return null;
+
+
+            return {
+
+                id:
+                    generateId(
+                        "building"
+                    ),
+
+                type,
+
+                x,
+
+                y,
+
+                size:
+                    config.size,
+
+                color:
+                    config.color,
+
+                level: 1,
+
+                createdAt:
+                    Date.now()
+
+            };
+        }
+
+
+        function getBuildingCost(type) {
+
+            const costs = {
+
+                house: 100,
+
+                commercial: 250,
+
+                industrial: 350,
+
+                power: 2000,
+
+                water: 1500,
+
+                hospital: 5000,
+
+                park: 500
+
+            };
+
+
+            return costs[type] || 100;
+        }
+
+
+        /* =====================================================
+           DRAW WORLD
+        ====================================================== */
 
         function draw() {
 
-            ctx.clearRect(0, 0, width, height);
+            ctx.clearRect(
+                0,
+                0,
+                width,
+                height
+            );
+
 
             /*
              * Background
              */
 
-            ctx.fillStyle = "#101820";
-            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle =
+                "#101820";
+
+            ctx.fillRect(
+                0,
+                0,
+                width,
+                height
+            );
+
+
+            /*
+             * Camera transform
+             */
+
+            ctx.save();
+
+
+            ctx.translate(
+                width / 2 +
+                camera.x,
+
+                height / 2 +
+                camera.y
+            );
+
+
+            ctx.scale(
+                camera.zoom,
+                camera.zoom
+            );
+
 
             /*
              * Ground
              */
 
-            const groundSize = 2400;
+            drawGround();
 
-            ctx.save();
-
-            ctx.translate(
-                width / 2 + camera.x,
-                height / 2 + camera.y
-            );
-
-            ctx.scale(camera.zoom, camera.zoom);
-
-            ctx.fillStyle = "#283b2e";
-
-            ctx.fillRect(
-                -groundSize / 2,
-                -groundSize / 2,
-                groundSize,
-                groundSize
-            );
 
             /*
              * Grid
@@ -637,11 +1860,13 @@ import { RoadEngine } from "./RoadEngine.js";
 
             drawGrid();
 
+
             /*
              * Roads
              */
 
             drawRoads();
+
 
             /*
              * Buildings
@@ -649,69 +1874,154 @@ import { RoadEngine } from "./RoadEngine.js";
 
             drawBuildings();
 
-            ctx.restore();
 
             /*
-             * Smooth camera zoom
+             * Road preview
+             */
+
+            roadEngine.drawPreview(
+                ctx
+            );
+
+
+            ctx.restore();
+
+
+            /*
+             * Smooth zoom
              */
 
             camera.zoom +=
-                (camera.targetZoom - camera.zoom) * 0.12;
+                (
+                    camera.targetZoom -
+                    camera.zoom
+                ) * 0.12;
 
-            requestAnimationFrame(draw);
+
+            requestAnimationFrame(
+                draw
+            );
         }
+
+
+        /* =====================================================
+           GROUND
+        ====================================================== */
+
+        function drawGround() {
+
+            ctx.fillStyle =
+                "#293c2f";
+
+
+            ctx.fillRect(
+
+                -world.size / 2,
+
+                -world.size / 2,
+
+                world.size,
+
+                world.size
+
+            );
+
+        }
+
+
+        /* =====================================================
+           GRID
+        ====================================================== */
 
         function drawGrid() {
 
-            const size = 100;
+            const gridSize = 100;
+
             const range = 1200;
 
-            ctx.strokeStyle = "rgba(255,255,255,0.035)";
+
+            ctx.strokeStyle =
+                "rgba(255,255,255,0.035)";
+
             ctx.lineWidth = 1;
 
-            for (let x = -range; x <= range; x += size) {
+
+            for (
+                let x = -range;
+                x <= range;
+                x += gridSize
+            ) {
 
                 ctx.beginPath();
-                ctx.moveTo(x, -range);
-                ctx.lineTo(x, range);
+
+                ctx.moveTo(
+                    x,
+                    -range
+                );
+
+                ctx.lineTo(
+                    x,
+                    range
+                );
+
                 ctx.stroke();
+
             }
 
-            for (let y = -range; y <= range; y += size) {
+
+            for (
+                let y = -range;
+                y <= range;
+                y += gridSize
+            ) {
 
                 ctx.beginPath();
-                ctx.moveTo(-range, y);
-                ctx.lineTo(range, y);
+
+                ctx.moveTo(
+                    -range,
+                    y
+                );
+
+                ctx.lineTo(
+                    range,
+                    y
+                );
+
                 ctx.stroke();
+
             }
+
         }
+
+
+        /* =====================================================
+           DRAW ROADS
+        ====================================================== */
 
         function drawRoads() {
 
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
+            ctx.lineCap =
+                "round";
 
-            for (const road of world.roads) {
+            ctx.lineJoin =
+                "round";
 
-                ctx.strokeStyle = "#171b20";
-                ctx.lineWidth = 34;
 
-                ctx.beginPath();
+            for (
+                const road
+                of city.roads
+            ) {
 
-                ctx.moveTo(
-                    road.x1,
-                    road.y1
-                );
+                /*
+                 * Road border
+                 */
 
-                ctx.lineTo(
-                    road.x2,
-                    road.y2
-                );
+                ctx.strokeStyle =
+                    "#15191d";
 
-                ctx.stroke();
+                ctx.lineWidth =
+                    38;
 
-                ctx.strokeStyle = "#4d5359";
-                ctx.lineWidth = 26;
 
                 ctx.beginPath();
 
@@ -727,10 +2037,47 @@ import { RoadEngine } from "./RoadEngine.js";
 
                 ctx.stroke();
 
-                ctx.strokeStyle = "rgba(255,255,255,0.18)";
+
+                /*
+                 * Road surface
+                 */
+
+                ctx.strokeStyle =
+                    "#535960";
+
+                ctx.lineWidth =
+                    28;
+
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    road.x1,
+                    road.y1
+                );
+
+                ctx.lineTo(
+                    road.x2,
+                    road.y2
+                );
+
+                ctx.stroke();
+
+
+                /*
+                 * Center marking
+                 */
+
+                ctx.strokeStyle =
+                    "rgba(255,255,255,0.55)";
+
                 ctx.lineWidth = 2;
 
-                ctx.setLineDash([12, 12]);
+                ctx.setLineDash([
+                    10,
+                    10
+                ]);
+
 
                 ctx.beginPath();
 
@@ -746,329 +2093,257 @@ import { RoadEngine } from "./RoadEngine.js";
 
                 ctx.stroke();
 
+
                 ctx.setLineDash([]);
+
             }
+
+
+            /*
+             * Intersections
+             */
+
+            if (
+                city.intersections
+            ) {
+
+                for (
+                    const intersection
+                    of city.intersections
+                ) {
+
+                    ctx.fillStyle =
+                        "#666c72";
+
+
+                    ctx.beginPath();
+
+                    ctx.arc(
+                        intersection.x,
+                        intersection.y,
+                        15,
+                        0,
+                        Math.PI * 2
+                    );
+
+                    ctx.fill();
+
+                }
+
+            }
+
         }
+
+
+        /* =====================================================
+           DRAW BUILDINGS
+        ====================================================== */
 
         function drawBuildings() {
 
-            for (const building of world.buildings) {
+            for (
+                const building
+                of city.buildings
+            ) {
 
                 ctx.save();
+
 
                 ctx.translate(
                     building.x,
                     building.y
                 );
 
-                ctx.fillStyle = building.color;
-
-                ctx.fillRect(
-                    -building.size / 2,
-                    -building.size / 2,
-                    building.size,
-                    building.size
-                );
 
                 /*
-                 * Building roof
+                 * Shadow
                  */
 
-                ctx.fillStyle = "rgba(0,0,0,0.25)";
+                ctx.fillStyle =
+                    "rgba(0,0,0,0.25)";
+
 
                 ctx.fillRect(
-                    -building.size / 2,
-                    -building.size / 2,
+
+                    -building.size / 2 + 5,
+
+                    -building.size / 2 + 6,
+
                     building.size,
-                    7
+
+                    building.size
+
                 );
+
+
+                /*
+                 * Building
+                 */
+
+                ctx.fillStyle =
+                    building.color;
+
+
+                ctx.fillRect(
+
+                    -building.size / 2,
+
+                    -building.size / 2,
+
+                    building.size,
+
+                    building.size
+
+                );
+
+
+                /*
+                 * Roof
+                 */
+
+                ctx.fillStyle =
+                    "rgba(0,0,0,0.22)";
+
+
+                ctx.fillRect(
+
+                    -building.size / 2,
+
+                    -building.size / 2,
+
+                    building.size,
+
+                    7
+
+                );
+
 
                 /*
                  * Windows
                  */
 
-                ctx.fillStyle = "rgba(255,255,255,0.45)";
-
-                const windowSize = 4;
-
-                for (
-                    let wx = -building.size / 2 + 9;
-                    wx < building.size / 2 - 4;
-                    wx += 12
+                if (
+                    building.type !==
+                    "park"
                 ) {
 
+                    ctx.fillStyle =
+                        "rgba(255,255,255,0.42)";
+
+
+                    const spacing = 12;
+
+                    const windowSize = 4;
+
+
                     for (
-                        let wy = -building.size / 2 + 15;
-                        wy < building.size / 2 - 4;
-                        wy += 12
+                        let wx =
+                            -building.size / 2 +
+                            9;
+
+                        wx <
+                            building.size / 2 -
+                            4;
+
+                        wx += spacing
                     ) {
 
-                        ctx.fillRect(
-                            wx,
-                            wy,
-                            windowSize,
-                            windowSize
-                        );
+                        for (
+                            let wy =
+                                -building.size / 2 +
+                                15;
+
+                            wy <
+                                building.size / 2 -
+                                4;
+
+                            wy += spacing
+                        ) {
+
+                            ctx.fillRect(
+
+                                wx,
+                                wy,
+
+                                windowSize,
+                                windowSize
+
+                            );
+
+                        }
+
                     }
+
                 }
+
+
+                /*
+                 * Park decoration
+                 */
+
+                if (
+                    building.type ===
+                    "park"
+                ) {
+
+                    ctx.fillStyle =
+                        "#7f9b62";
+
+
+                    for (
+                        let i = 0;
+                        i < 5;
+                        i++
+                    ) {
+
+                        const angle =
+                            (
+                                i / 5
+                            ) *
+                            Math.PI *
+                            2;
+
+
+                        const radius =
+                            building.size *
+                            0.25;
+
+
+                        ctx.beginPath();
+
+                        ctx.arc(
+
+                            Math.cos(angle) *
+                                radius,
+
+                            Math.sin(angle) *
+                                radius,
+
+                            5,
+
+                            0,
+
+                            Math.PI * 2
+
+                        );
+
+                        ctx.fill();
+
+                    }
+
+                }
+
 
                 ctx.restore();
+
             }
+
         }
 
-        /* =========================
-           UI
-        ========================= */
 
-        const buildMenu =
-            document.getElementById("buildMenu");
-
-        const buildButton =
-            document.getElementById("buildButton");
-
-        buildButton.addEventListener("click", () => {
-
-            buildMenu.classList.toggle("open");
-
-        });
-
-        /* =========================
-           BUILD ITEMS
-        ========================= */
-
-        let currentTool = null;
-
-        document
-            .querySelectorAll(".build-item")
-            .forEach(button => {
-
-                button.addEventListener("click", () => {
-
-                    currentTool =
-                        button.dataset.tool;
-
-                    buildMenu.classList.remove("open");
-
-                    showNotification(
-                        "Build Mode",
-                        `Selected: ${currentTool}`
-                    );
-
-                });
-
-            });
-
-        /* =========================
-           CAMERA BUTTONS
-        ========================= */
-
-        document
-            .getElementById("zoomIn")
-            .addEventListener("click", () => {
-
-                camera.targetZoom =
-                    Math.min(
-                        camera.targetZoom * 1.25,
-                        3
-                    );
-            });
-
-        document
-            .getElementById("zoomOut")
-            .addEventListener("click", () => {
-
-                camera.targetZoom =
-                    Math.max(
-                        camera.targetZoom / 1.25,
-                        0.45
-                    );
-            });
-
-        document
-            .getElementById("resetCamera")
-            .addEventListener("click", () => {
-
-                camera.x = 0;
-                camera.y = 0;
-
-                camera.targetZoom = 1;
-
-            });
-
-        /* =========================
-           NOTIFICATION
-        ========================= */
-
-        let notificationTimer;
-
-        function showNotification(title, text) {
-
-            const box =
-                document.getElementById("notification");
-
-            document.getElementById(
-                "notificationTitle"
-            ).textContent = title;
-
-            document.getElementById(
-                "notificationText"
-            ).textContent = text;
-
-            box.classList.add("show");
-
-            clearTimeout(notificationTimer);
-
-            notificationTimer =
-                setTimeout(() => {
-
-                    box.classList.remove("show");
-
-                }, 2500);
-        }
-
-        /* =========================
-           TOUCH CAMERA
-        ========================= */
-
-        let pointerStart = null;
-
-        canvas.addEventListener(
-            "pointerdown",
-            event => {
-
-                pointerStart = {
-                    x: event.clientX,
-                    y: event.clientY
-                };
-
-            }
-        );
-
-        canvas.addEventListener(
-            "pointermove",
-            event => {
-
-                if (!pointerStart)
-                    return;
-
-                const dx =
-                    event.clientX - pointerStart.x;
-
-                const dy =
-                    event.clientY - pointerStart.y;
-
-                camera.x += dx;
-                camera.y += dy;
-
-                pointerStart.x = event.clientX;
-                pointerStart.y = event.clientY;
-
-            }
-        );
-
-        canvas.addEventListener(
-            "pointerup",
-            () => {
-
-                pointerStart = null;
-
-            }
-        );
-
-        canvas.addEventListener(
-            "pointercancel",
-            () => {
-
-                pointerStart = null;
-
-            }
-        );
-
-        /* =========================
-           BASIC BUILDING PLACEMENT
-        ========================= */
-
-        canvas.addEventListener(
-            "click",
-            event => {
-
-                if (!currentTool)
-                    return;
-
-                if (currentTool === "road") {
-
-                    showNotification(
-                        "Road Tool",
-                        "Road drawing engine coming next."
-                    );
-
-                    return;
-                }
-
-                const rect =
-                    canvas.getBoundingClientRect();
-
-                const screenX =
-                    event.clientX - rect.left;
-
-                const screenY =
-                    event.clientY - rect.top;
-
-                const worldX =
-                    (screenX - width / 2 - camera.x)
-                    / camera.zoom;
-
-                const worldY =
-                    (screenY - height / 2 - camera.y)
-                    / camera.zoom;
-
-                let color = "#777";
-
-                if (currentTool === "house")
-                    color = "#9a6f55";
-
-                if (currentTool === "commercial")
-                    color = "#55759a";
-
-                if (currentTool === "industrial")
-                    color = "#8c7a4f";
-
-                if (currentTool === "power")
-                    color = "#8a6845";
-
-                if (currentTool === "water")
-                    color = "#4f8090";
-
-                if (currentTool === "hospital")
-                    color = "#8b5b63";
-
-                if (currentTool === "park")
-                    color = "#47704b";
-
-                world.buildings.push({
-
-                    x: worldX,
-                    y: worldY,
-
-                    size: currentTool === "park"
-                        ? 55
-                        : 45,
-
-                    color,
-
-                    type: currentTool
-
-                });
-
-                city.money -= 100;
-
-                updateHUD();
-
-            });
-
-        /* =========================
+        /* =====================================================
            HUD
-        ========================= */
+        ====================================================== */
 
         function updateHUD() {
 
@@ -1076,35 +2351,265 @@ import { RoadEngine } from "./RoadEngine.js";
                 "money"
             ).textContent =
                 "$" +
-                Math.max(0, city.money)
-                    .toLocaleString();
+                Math.max(
+                    0,
+                    Math.floor(city.money)
+                ).toLocaleString();
+
 
             document.getElementById(
                 "population"
             ).textContent =
-                city.population.toLocaleString();
+                city.population
+                    .toLocaleString();
+
 
             document.getElementById(
                 "happiness"
             ).textContent =
-                city.happiness + "%";
+                city.happiness +
+                "%";
+
 
             document.getElementById(
                 "power"
             ).textContent =
-                city.power + "%";
+                city.power +
+                "%";
+
         }
+
+
+        /* =====================================================
+           NOTIFICATION
+        ====================================================== */
+
+        let notificationTimer = null;
+
+
+        function showNotification(
+            title,
+            text
+        ) {
+
+            const box =
+                document.getElementById(
+                    "notification"
+                );
+
+
+            document.getElementById(
+                "notificationTitle"
+            ).textContent =
+                title;
+
+
+            document.getElementById(
+                "notificationText"
+            ).textContent =
+                text;
+
+
+            box.classList.add(
+                "show"
+            );
+
+
+            clearTimeout(
+                notificationTimer
+            );
+
+
+            notificationTimer =
+                setTimeout(
+                    () => {
+
+                        box.classList.remove(
+                            "show"
+                        );
+
+                    },
+                    2600
+                );
+
+        }
+
+
+        /* =====================================================
+           SIMULATION SPEED
+        ====================================================== */
+
+        document
+            .querySelectorAll(
+                ".speed-btn"
+            )
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        document
+                            .querySelectorAll(
+                                ".speed-btn"
+                            )
+                            .forEach(
+                                item =>
+                                    item.classList
+                                        .remove(
+                                            "active"
+                                        )
+                            );
+
+
+                        button.classList.add(
+                            "active"
+                        );
+
+
+                        const speed =
+                            Number(
+                                button.dataset.speed
+                            );
+
+
+                        window.metroCitySpeed =
+                            speed;
+
+
+                        showNotification(
+                            "Simulation Speed",
+                            `${speed}× speed enabled.`
+                        );
+
+                    }
+                );
+
+            });
+
+
+        window.metroCitySpeed = 1;
+
+
+        /* =====================================================
+           CITY BUTTONS
+        ====================================================== */
+
+        document
+            .getElementById("mapButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    showNotification(
+                        "Map",
+                        "Map management will be added in the next module."
+                    );
+
+                }
+            );
+
+
+        document
+            .getElementById("cityButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    showNotification(
+                        "City",
+                        `${city.buildings.length} buildings and ${city.roads.length} roads.`
+                    );
+
+                }
+            );
+
+
+        document
+            .getElementById("statsButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    showNotification(
+                        "Statistics",
+                        `Population: ${city.population.toLocaleString()}`
+                    );
+
+                }
+            );
+
+
+        document
+            .getElementById("settingsButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    showNotification(
+                        "Settings",
+                        "Game settings module will be added later."
+                    );
+
+                }
+            );
+
+
+        /* =====================================================
+           ID GENERATOR
+        ====================================================== */
+
+        function generateId(
+            prefix
+        ) {
+
+            return (
+                prefix +
+                "_" +
+                Date.now() +
+                "_" +
+                Math.random()
+                    .toString(36)
+                    .slice(2, 8)
+            );
+
+        }
+
+
+        /* =====================================================
+           ROAD CREATED EVENT
+        ====================================================== */
+
+        window.addEventListener(
+            "metrocity:roadCreated",
+            event => {
+
+                updateHUD();
+
+
+                showNotification(
+                    "Road Built",
+                    `${Math.round(event.detail.length)}m road constructed.`
+                );
+
+            }
+        );
+
+
+        /* =====================================================
+           START
+        ====================================================== */
+
+        city.currentTool = null;
 
         updateHUD();
 
-        /* =========================
-           START
-        ========================= */
 
         showNotification(
             "Welcome to MetroCity",
-            "Open BUILD and start creating your city."
+            "Tap BUILD → Road, then drag across the map."
         );
+
 
         draw();
 
