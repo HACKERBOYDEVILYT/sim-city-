@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+import { RoadEngine } from "./RoadEngine.js";
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -559,11 +560,17 @@
         ========================= */
 
         const city = {
-            money: 125000,
-            population: 1250,
-            happiness: 82,
-            power: 100
-        };
+    money: 125000,
+    population: 1250,
+    happiness: 82,
+    power: 100,
+
+    currentTool: null,
+
+    roads: [],
+    buildings: [],
+    intersections: []
+};
 
         /* =========================
            CAMERA
