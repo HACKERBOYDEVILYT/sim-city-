@@ -13,6 +13,7 @@
     <title>MetroCity V5</title>
 
     <style>
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -45,7 +46,7 @@
         }
 
         /* =====================================================
-           GAME CANVAS
+           GAME
         ===================================================== */
 
         #game {
@@ -61,6 +62,7 @@
 
             cursor: default;
         }
+
 
         /* =====================================================
            TOP HUD
@@ -80,11 +82,10 @@
 
             gap: 12px;
 
-            padding:
-                10px 14px;
+            padding: 10px 14px;
 
             background:
-                rgba(9, 13, 19, 0.88);
+                rgba(9, 13, 19, 0.90);
 
             border-bottom:
                 1px solid rgba(255,255,255,0.08);
@@ -98,9 +99,6 @@
             z-index: 100;
         }
 
-        /* =====================================================
-           LOGO
-        ===================================================== */
 
         .logo {
             flex-shrink: 0;
@@ -112,8 +110,9 @@
             font-size: 20px;
             font-weight: 900;
 
-            letter-spacing: 0.5px;
+            letter-spacing: .5px;
         }
+
 
         .logo span {
             display: block;
@@ -121,18 +120,15 @@
             margin-top: 2px;
 
             color:
-                rgba(255,255,255,0.45);
+                rgba(255,255,255,.42);
 
             font-size: 9px;
 
-            font-weight: 600;
+            font-weight: 700;
 
-            letter-spacing: 1.4px;
+            letter-spacing: 1.5px;
         }
 
-        /* =====================================================
-           STATS
-        ===================================================== */
 
         .stats {
             display: flex;
@@ -150,24 +146,25 @@
             display: none;
         }
 
+
         .stat {
             flex-shrink: 0;
 
             min-width: 108px;
 
-            padding:
-                8px 12px;
+            padding: 8px 12px;
 
             border-radius: 12px;
 
             background:
-                rgba(255,255,255,0.06);
+                rgba(255,255,255,.055);
 
             border:
-                1px solid rgba(255,255,255,0.06);
+                1px solid rgba(255,255,255,.06);
 
             color: white;
         }
+
 
         .stat small {
             display: block;
@@ -175,14 +172,13 @@
             margin-bottom: 3px;
 
             color:
-                rgba(255,255,255,0.48);
+                rgba(255,255,255,.45);
 
             font-size: 9px;
 
             font-weight: 700;
-
-            letter-spacing: 0.5px;
         }
+
 
         .stat strong {
             display: block;
@@ -193,6 +189,54 @@
 
             font-weight: 800;
         }
+
+
+        /* =====================================================
+           TOOL INDICATOR
+        ===================================================== */
+
+        .tool-indicator {
+            position: fixed;
+
+            top: 84px;
+            left: 14px;
+
+            padding: 8px 12px;
+
+            border-radius: 11px;
+
+            background:
+                rgba(10,15,22,.88);
+
+            border:
+                1px solid rgba(255,255,255,.07);
+
+            color: white;
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+            opacity: 0;
+
+            transform:
+                translateY(-8px);
+
+            transition: .2s ease;
+
+            pointer-events: none;
+
+            z-index: 150;
+        }
+
+
+        .tool-indicator.show {
+            opacity: 1;
+
+            transform:
+                translateY(0);
+        }
+
 
         /* =====================================================
            NOTIFICATION
@@ -205,20 +249,20 @@
             right: 14px;
 
             width:
-                min(340px, calc(100vw - 28px));
+                min(350px, calc(100vw - 28px));
 
-            padding:
-                14px 16px;
-
-            color: white;
-
-            background:
-                rgba(10,15,22,0.94);
-
-            border:
-                1px solid rgba(255,255,255,0.08);
+            padding: 14px 16px;
 
             border-radius: 15px;
+
+            background:
+                rgba(10,15,22,.95);
+
+            border:
+                1px solid rgba(255,255,255,.08);
+
+            box-shadow:
+                0 18px 50px rgba(0,0,0,.30);
 
             backdrop-filter:
                 blur(18px);
@@ -226,22 +270,18 @@
             -webkit-backdrop-filter:
                 blur(18px);
 
-            box-shadow:
-                0 15px 40px rgba(0,0,0,0.28);
+            opacity: 0;
 
             transform:
-                translateY(-15px);
-
-            opacity: 0;
+                translateY(-12px);
 
             pointer-events: none;
 
-            transition:
-                opacity .25s ease,
-                transform .25s ease;
+            transition: .25s ease;
 
-            z-index: 300;
+            z-index: 400;
         }
+
 
         .notification.show {
             opacity: 1;
@@ -250,22 +290,27 @@
                 translateY(0);
         }
 
+
         .notification strong {
             display: block;
 
             margin-bottom: 4px;
 
+            color: white;
+
             font-size: 14px;
         }
 
+
         .notification div {
             color:
-                rgba(255,255,255,0.65);
+                rgba(255,255,255,.62);
 
             font-size: 12px;
 
-            line-height: 1.4;
+            line-height: 1.45;
         }
+
 
         /* =====================================================
            BUILD MENU
@@ -283,21 +328,21 @@
             padding: 15px;
 
             background:
-                rgba(10,15,22,0.95);
+                rgba(10,15,22,.96);
 
             border:
-                1px solid rgba(255,255,255,0.08);
+                1px solid rgba(255,255,255,.08);
 
             border-radius: 20px;
+
+            box-shadow:
+                0 22px 65px rgba(0,0,0,.38);
 
             backdrop-filter:
                 blur(20px);
 
             -webkit-backdrop-filter:
                 blur(20px);
-
-            box-shadow:
-                0 20px 60px rgba(0,0,0,0.35);
 
             transform:
                 translateX(-50%)
@@ -311,8 +356,9 @@
                 opacity .25s ease,
                 transform .25s ease;
 
-            z-index: 200;
+            z-index: 250;
         }
+
 
         .build-menu.open {
             opacity: 1;
@@ -324,6 +370,7 @@
                 translateY(0);
         }
 
+
         .build-header {
             display: flex;
 
@@ -334,6 +381,7 @@
             margin-bottom: 12px;
         }
 
+
         .build-title {
             color: white;
 
@@ -342,14 +390,16 @@
             font-weight: 800;
         }
 
+
         .build-subtitle {
             margin-top: 3px;
 
             color:
-                rgba(255,255,255,0.42);
+                rgba(255,255,255,.42);
 
             font-size: 10px;
         }
+
 
         .close-build {
             width: 32px;
@@ -360,12 +410,13 @@
             border-radius: 10px;
 
             background:
-                rgba(255,255,255,0.07);
+                rgba(255,255,255,.07);
 
             color: white;
 
             cursor: pointer;
         }
+
 
         .build-grid {
             display: grid;
@@ -376,46 +427,48 @@
             gap: 8px;
         }
 
+
         .build-item {
-            min-height: 74px;
+            min-height: 76px;
 
             padding: 8px;
 
             border:
-                1px solid rgba(255,255,255,0.06);
+                1px solid rgba(255,255,255,.06);
 
             border-radius: 14px;
 
             background:
-                rgba(255,255,255,0.055);
+                rgba(255,255,255,.055);
 
             color: white;
 
             cursor: pointer;
 
-            transition:
-                transform .12s ease,
-                background .12s ease,
-                border-color .12s ease;
+            transition: .15s ease;
         }
+
 
         .build-item:hover {
             background:
-                rgba(255,255,255,0.09);
+                rgba(255,255,255,.09);
         }
+
 
         .build-item:active {
             transform:
                 scale(.95);
         }
 
+
         .build-item.selected {
             background:
-                rgba(255,255,255,0.12);
+                rgba(255,255,255,.12);
 
             border-color:
-                rgba(255,255,255,0.25);
+                rgba(255,255,255,.25);
         }
+
 
         .build-item .icon {
             display: block;
@@ -425,6 +478,7 @@
             font-size: 24px;
         }
 
+
         .build-item .name {
             display: block;
 
@@ -433,66 +487,270 @@
             font-weight: 700;
         }
 
+
         .build-item .price {
             display: block;
 
             margin-top: 3px;
 
             color:
-                rgba(255,255,255,0.42);
+                rgba(255,255,255,.42);
 
             font-size: 9px;
         }
 
+
         /* =====================================================
-           CURRENT TOOL INDICATOR
+           BUILDING INFO PANEL
         ===================================================== */
 
-        .tool-indicator {
+        .building-panel {
             position: fixed;
 
-            top: 84px;
-            left: 14px;
+            top: 90px;
+            right: 14px;
 
-            padding:
-                8px 11px;
+            width:
+                min(310px, calc(100vw - 28px));
+
+            padding: 16px;
+
+            background:
+                rgba(10,15,22,.96);
+
+            border:
+                1px solid rgba(255,255,255,.08);
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.35);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            transform:
+                translateX(30px);
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition: .25s ease;
+
+            z-index: 300;
+        }
+
+
+        .building-panel.open {
+            opacity: 1;
+
+            transform:
+                translateX(0);
+
+            pointer-events: auto;
+        }
+
+
+        .building-panel-header {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 10px;
+
+            padding-bottom: 12px;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.07);
+        }
+
+
+        .building-title {
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+        }
+
+
+        .building-icon {
+            width: 40px;
+            height: 40px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,.07);
+
+            font-size: 21px;
+        }
+
+
+        .building-title strong {
+            display: block;
+
+            color: white;
+
+            font-size: 14px;
+        }
+
+
+        .building-title small {
+            display: block;
+
+            margin-top: 2px;
+
+            color:
+                rgba(255,255,255,.42);
+
+            font-size: 10px;
+        }
+
+
+        .close-panel {
+            width: 30px;
+            height: 30px;
+
+            border: 0;
+
+            border-radius: 9px;
+
+            background:
+                rgba(255,255,255,.06);
+
+            color: white;
+
+            cursor: pointer;
+        }
+
+
+        .building-level {
+            margin-top: 14px;
+
+            padding: 10px 12px;
 
             border-radius: 11px;
 
             background:
-                rgba(10,15,22,0.85);
+                rgba(255,255,255,.045);
 
-            border:
-                1px solid rgba(255,255,255,0.07);
+            color:
+                rgba(255,255,255,.68);
+
+            font-size: 11px;
+        }
+
+
+        .building-level strong {
+            color: white;
+        }
+
+
+        .building-info-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 7px;
+
+            margin-top: 10px;
+        }
+
+
+        .info-box {
+            padding: 9px;
+
+            border-radius: 11px;
+
+            background:
+                rgba(255,255,255,.045);
+        }
+
+
+        .info-box small {
+            display: block;
+
+            color:
+                rgba(255,255,255,.38);
+
+            font-size: 8px;
+
+            font-weight: 700;
+        }
+
+
+        .info-box strong {
+            display: block;
+
+            margin-top: 3px;
+
+            color: white;
+
+            font-size: 12px;
+        }
+
+
+        .panel-actions {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 8px;
+
+            margin-top: 13px;
+        }
+
+
+        .panel-btn {
+            height: 42px;
+
+            border: 0;
+
+            border-radius: 11px;
+
+            background:
+                rgba(255,255,255,.08);
 
             color: white;
 
             font-size: 11px;
 
-            font-weight: 700;
+            font-weight: 800;
 
-            opacity: 0;
-
-            transform:
-                translateY(-8px);
-
-            transition:
-                .2s ease;
-
-            pointer-events: none;
-
-            z-index: 150;
+            cursor: pointer;
         }
 
-        .tool-indicator.show {
-            opacity: 1;
 
+        .panel-btn:active {
             transform:
-                translateY(0);
+                scale(.97);
         }
+
+
+        .panel-btn.danger {
+            background:
+                rgba(160,70,70,.20);
+
+            color:
+                #ffaaaa;
+        }
+
 
         /* =====================================================
-           CAMERA CONTROLS
+           CAMERA
         ===================================================== */
 
         .camera-controls {
@@ -510,17 +768,18 @@
             z-index: 120;
         }
 
+
         .camera-btn {
             width: 44px;
             height: 44px;
 
             border:
-                1px solid rgba(255,255,255,0.08);
+                1px solid rgba(255,255,255,.08);
 
             border-radius: 12px;
 
             background:
-                rgba(10,14,20,0.85);
+                rgba(10,14,20,.86);
 
             color: white;
 
@@ -532,13 +791,75 @@
                 blur(10px);
         }
 
+
         .camera-btn:active {
             transform:
                 scale(.94);
         }
 
+
         /* =====================================================
-           BOTTOM TOOLBAR
+           SPEED
+        ===================================================== */
+
+        .speed-control {
+            position: fixed;
+
+            left: 14px;
+            bottom: 88px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 5px;
+
+            padding: 5px;
+
+            background:
+                rgba(10,14,20,.86);
+
+            border:
+                1px solid rgba(255,255,255,.07);
+
+            border-radius: 13px;
+
+            z-index: 120;
+        }
+
+
+        .speed-btn {
+            min-width: 38px;
+
+            height: 34px;
+
+            border: 0;
+
+            border-radius: 9px;
+
+            background: transparent;
+
+            color:
+                rgba(255,255,255,.55);
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+        }
+
+
+        .speed-btn.active {
+            background:
+                rgba(255,255,255,.10);
+
+            color: white;
+        }
+
+
+        /* =====================================================
+           TOOLBAR
         ===================================================== */
 
         .toolbar {
@@ -564,10 +885,10 @@
             padding: 6px;
 
             background:
-                rgba(9,13,19,0.94);
+                rgba(9,13,19,.95);
 
             border:
-                1px solid rgba(255,255,255,0.08);
+                1px solid rgba(255,255,255,.08);
 
             border-radius: 18px;
 
@@ -580,6 +901,7 @@
             z-index: 100;
         }
 
+
         .tool {
             width: 60px;
             height: 50px;
@@ -588,32 +910,33 @@
 
             border-radius: 13px;
 
-            background:
-                transparent;
+            background: transparent;
 
             color: white;
 
             cursor: pointer;
 
-            transition:
-                background .15s ease,
-                transform .12s ease;
+            transition: .15s ease;
         }
+
 
         .tool:hover {
             background:
-                rgba(255,255,255,0.06);
+                rgba(255,255,255,.06);
         }
+
 
         .tool:active {
             transform:
                 scale(.94);
         }
 
+
         .tool.active {
             background:
-                rgba(255,255,255,0.10);
+                rgba(255,255,255,.10);
         }
+
 
         .tool-icon {
             display: block;
@@ -623,75 +946,18 @@
             font-size: 20px;
         }
 
+
         .tool-label {
             display: block;
 
             color:
-                rgba(255,255,255,0.55);
+                rgba(255,255,255,.52);
 
             font-size: 8px;
 
             font-weight: 700;
-
-            letter-spacing: .3px;
         }
 
-        /* =====================================================
-           SPEED CONTROL
-        ===================================================== */
-
-        .speed-control {
-            position: fixed;
-
-            left: 14px;
-            bottom: 88px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 5px;
-
-            padding: 5px;
-
-            background:
-                rgba(10,14,20,0.86);
-
-            border:
-                1px solid rgba(255,255,255,0.07);
-
-            border-radius: 13px;
-
-            z-index: 120;
-        }
-
-        .speed-btn {
-            min-width: 38px;
-            height: 34px;
-
-            border: 0;
-
-            border-radius: 9px;
-
-            background:
-                transparent;
-
-            color:
-                rgba(255,255,255,0.6);
-
-            font-size: 11px;
-
-            font-weight: 800;
-
-            cursor: pointer;
-        }
-
-        .speed-btn.active {
-            background:
-                rgba(255,255,255,0.10);
-
-            color: white;
-        }
 
         /* =====================================================
            MOBILE
@@ -706,15 +972,18 @@
                     8px 10px;
             }
 
+
             .logo {
                 min-width: 92px;
 
                 font-size: 16px;
             }
 
+
             .logo span {
-                font-size: 8px;
+                font-size: 7px;
             }
+
 
             .stat {
                 min-width: 88px;
@@ -723,19 +992,23 @@
                     7px 9px;
             }
 
+
             .stat small {
                 font-size: 8px;
             }
+
 
             .stat strong {
                 font-size: 12px;
             }
 
+
             .build-menu {
-                bottom: 80px;
+                bottom: 78px;
 
                 padding: 12px;
             }
+
 
             .build-grid {
                 grid-template-columns:
@@ -744,23 +1017,74 @@
                 gap: 6px;
             }
 
+
             .build-item {
-                min-height: 64px;
+                min-height: 65px;
 
                 padding: 6px;
             }
+
 
             .build-item .icon {
                 font-size: 20px;
             }
 
+
             .build-item .name {
                 font-size: 9px;
             }
 
+
             .build-item .price {
                 display: none;
             }
+
+
+            .building-panel {
+                top: auto;
+
+                right: 8px;
+                left: 8px;
+
+                bottom: 75px;
+
+                width: auto;
+
+                transform:
+                    translateY(25px);
+            }
+
+
+            .building-panel.open {
+                transform:
+                    translateY(0);
+            }
+
+
+            .camera-controls {
+                right: 9px;
+
+                bottom: 75px;
+            }
+
+
+            .camera-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+
+            .speed-control {
+                left: 9px;
+
+                bottom: 75px;
+            }
+
+
+            .speed-btn {
+                min-width: 34px;
+            }
+
 
             .toolbar {
                 width:
@@ -771,30 +1095,11 @@
                 height: 58px;
             }
 
+
             .tool {
                 width: 50px;
             }
 
-            .camera-controls {
-                right: 9px;
-
-                bottom: 76px;
-            }
-
-            .camera-btn {
-                width: 40px;
-                height: 40px;
-            }
-
-            .speed-control {
-                left: 9px;
-
-                bottom: 76px;
-            }
-
-            .speed-btn {
-                min-width: 34px;
-            }
 
             .notification {
                 top: 72px;
@@ -805,8 +1110,10 @@
                     calc(100vw - 18px);
             }
         }
+
     </style>
 </head>
+
 
 <body>
 
@@ -824,30 +1131,47 @@
     <header class="topbar">
 
         <div class="logo">
+
             METROCITY
-            <span>CITY SIMULATOR • V5</span>
+
+            <span>
+                CITY SIMULATOR • V5
+            </span>
+
         </div>
+
 
         <div class="stats">
 
             <div class="stat">
                 <small>💰 MONEY</small>
-                <strong id="money">$125,000</strong>
+                <strong id="money">
+                    $125,000
+                </strong>
             </div>
+
 
             <div class="stat">
                 <small>👥 POPULATION</small>
-                <strong id="population">1,250</strong>
+                <strong id="population">
+                    1,250
+                </strong>
             </div>
+
 
             <div class="stat">
                 <small>😊 HAPPINESS</small>
-                <strong id="happiness">82%</strong>
+                <strong id="happiness">
+                    82%
+                </strong>
             </div>
+
 
             <div class="stat">
                 <small>⚡ POWER</small>
-                <strong id="power">100%</strong>
+                <strong id="power">
+                    100%
+                </strong>
             </div>
 
         </div>
@@ -877,11 +1201,11 @@
     >
 
         <strong id="notificationTitle">
-            Welcome to MetroCity
+            MetroCity
         </strong>
 
         <div id="notificationText">
-            Start building your city.
+            Welcome to your city.
         </div>
 
     </div>
@@ -899,14 +1223,17 @@
         <div class="build-header">
 
             <div>
+
                 <div class="build-title">
                     Construction
                 </div>
 
                 <div class="build-subtitle">
-                    Select something to build
+                    Choose what you want to build
                 </div>
+
             </div>
+
 
             <button
                 id="closeBuild"
@@ -924,9 +1251,19 @@
                 class="build-item"
                 data-tool="road"
             >
-                <span class="icon">🛣️</span>
-                <span class="name">Road</span>
-                <span class="price">$20/m</span>
+
+                <span class="icon">
+                    🛣️
+                </span>
+
+                <span class="name">
+                    Road
+                </span>
+
+                <span class="price">
+                    $20/m
+                </span>
+
             </button>
 
 
@@ -934,9 +1271,19 @@
                 class="build-item"
                 data-tool="house"
             >
-                <span class="icon">🏠</span>
-                <span class="name">House</span>
-                <span class="price">$100</span>
+
+                <span class="icon">
+                    🏠
+                </span>
+
+                <span class="name">
+                    Residential
+                </span>
+
+                <span class="price">
+                    $100
+                </span>
+
             </button>
 
 
@@ -944,9 +1291,19 @@
                 class="build-item"
                 data-tool="commercial"
             >
-                <span class="icon">🏢</span>
-                <span class="name">Commercial</span>
-                <span class="price">$250</span>
+
+                <span class="icon">
+                    🏢
+                </span>
+
+                <span class="name">
+                    Commercial
+                </span>
+
+                <span class="price">
+                    $250
+                </span>
+
             </button>
 
 
@@ -954,29 +1311,19 @@
                 class="build-item"
                 data-tool="industrial"
             >
-                <span class="icon">🏭</span>
-                <span class="name">Industrial</span>
-                <span class="price">$350</span>
-            </button>
 
+                <span class="icon">
+                    🏭
+                </span>
 
-            <button
-                class="build-item"
-                data-tool="power"
-            >
-                <span class="icon">⚡</span>
-                <span class="name">Power</span>
-                <span class="price">$2,000</span>
-            </button>
+                <span class="name">
+                    Industrial
+                </span>
 
+                <span class="price">
+                    $350
+                </span>
 
-            <button
-                class="build-item"
-                data-tool="water"
-            >
-                <span class="icon">💧</span>
-                <span class="name">Water</span>
-                <span class="price">$1,500</span>
             </button>
 
 
@@ -984,9 +1331,79 @@
                 class="build-item"
                 data-tool="hospital"
             >
-                <span class="icon">🏥</span>
-                <span class="name">Hospital</span>
-                <span class="price">$5,000</span>
+
+                <span class="icon">
+                    🏥
+                </span>
+
+                <span class="name">
+                    Hospital
+                </span>
+
+                <span class="price">
+                    $5,000
+                </span>
+
+            </button>
+
+
+            <button
+                class="build-item"
+                data-tool="police"
+            >
+
+                <span class="icon">
+                    🚓
+                </span>
+
+                <span class="name">
+                    Police
+                </span>
+
+                <span class="price">
+                    $3,500
+                </span>
+
+            </button>
+
+
+            <button
+                class="build-item"
+                data-tool="fire"
+            >
+
+                <span class="icon">
+                    🚒
+                </span>
+
+                <span class="name">
+                    Fire
+                </span>
+
+                <span class="price">
+                    $3,000
+                </span>
+
+            </button>
+
+
+            <button
+                class="build-item"
+                data-tool="school"
+            >
+
+                <span class="icon">
+                    🏫
+                </span>
+
+                <span class="name">
+                    School
+                </span>
+
+                <span class="price">
+                    $4,000
+                </span>
+
             </button>
 
 
@@ -994,9 +1411,214 @@
                 class="build-item"
                 data-tool="park"
             >
-                <span class="icon">🌳</span>
-                <span class="name">Park</span>
-                <span class="price">$500</span>
+
+                <span class="icon">
+                    🌳
+                </span>
+
+                <span class="name">
+                    Park
+                </span>
+
+                <span class="price">
+                    $500
+                </span>
+
+            </button>
+
+
+            <button
+                class="build-item"
+                data-tool="power"
+            >
+
+                <span class="icon">
+                    ⚡
+                </span>
+
+                <span class="name">
+                    Power
+                </span>
+
+                <span class="price">
+                    $2,000
+                </span>
+
+            </button>
+
+
+            <button
+                class="build-item"
+                data-tool="water"
+            >
+
+                <span class="icon">
+                    💧
+                </span>
+
+                <span class="name">
+                    Water
+                </span>
+
+                <span class="price">
+                    $1,500
+                </span>
+
+            </button>
+
+
+            <button
+                class="build-item"
+                data-tool="stadium"
+            >
+
+                <span class="icon">
+                    🏟️
+                </span>
+
+                <span class="name">
+                    Stadium
+                </span>
+
+                <span class="price">
+                    $12,000
+                </span>
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         BUILDING PANEL
+    ====================================================== -->
+
+    <section
+        id="buildingPanel"
+        class="building-panel"
+    >
+
+        <div class="building-panel-header">
+
+            <div class="building-title">
+
+                <div
+                    id="buildingIcon"
+                    class="building-icon"
+                >
+                    🏠
+                </div>
+
+
+                <div>
+
+                    <strong id="buildingName">
+                        Residential
+                    </strong>
+
+                    <small id="buildingType">
+                        Building
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <button
+                id="closePanel"
+                class="close-panel"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div
+            id="buildingLevel"
+            class="building-level"
+        >
+            Level
+            <strong>
+                1
+            </strong>
+        </div>
+
+
+        <div class="building-info-grid">
+
+            <div class="info-box">
+
+                <small>
+                    POPULATION
+                </small>
+
+                <strong id="panelPopulation">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <small>
+                    WORKERS
+                </small>
+
+                <strong id="panelWorkers">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <small>
+                    HAPPINESS
+                </small>
+
+                <strong id="panelHappiness">
+                    +0
+                </strong>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <small>
+                    SERVICE
+                </small>
+
+                <strong id="panelService">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel-actions">
+
+            <button
+                id="upgradeBuilding"
+                class="panel-btn"
+            >
+                ⬆ Upgrade
+            </button>
+
+
+            <button
+                id="demolishBuilding"
+                class="panel-btn danger"
+            >
+                🗑 Demolish
             </button>
 
         </div>
@@ -1013,23 +1635,22 @@
         <button
             id="zoomIn"
             class="camera-btn"
-            aria-label="Zoom in"
         >
             +
         </button>
 
+
         <button
             id="resetCamera"
             class="camera-btn"
-            aria-label="Reset camera"
         >
             ◎
         </button>
 
+
         <button
             id="zoomOut"
             class="camera-btn"
-            aria-label="Zoom out"
         >
             −
         </button>
@@ -1038,7 +1659,7 @@
 
 
     <!-- =====================================================
-         SIMULATION SPEED
+         SPEED
     ====================================================== -->
 
     <div class="speed-control">
@@ -1050,6 +1671,7 @@
             1×
         </button>
 
+
         <button
             class="speed-btn"
             data-speed="2"
@@ -1057,12 +1679,14 @@
             2×
         </button>
 
+
         <button
             class="speed-btn"
             data-speed="4"
         >
             4×
         </button>
+
 
         <button
             class="speed-btn"
@@ -1084,8 +1708,15 @@
             class="tool active"
             id="buildButton"
         >
-            <span class="tool-icon">🏗️</span>
-            <span class="tool-label">BUILD</span>
+
+            <span class="tool-icon">
+                🏗️
+            </span>
+
+            <span class="tool-label">
+                BUILD
+            </span>
+
         </button>
 
 
@@ -1093,8 +1724,15 @@
             class="tool"
             id="mapButton"
         >
-            <span class="tool-icon">🗺️</span>
-            <span class="tool-label">MAP</span>
+
+            <span class="tool-icon">
+                🗺️
+            </span>
+
+            <span class="tool-label">
+                MAP
+            </span>
+
         </button>
 
 
@@ -1102,8 +1740,15 @@
             class="tool"
             id="cityButton"
         >
-            <span class="tool-icon">🏙️</span>
-            <span class="tool-label">CITY</span>
+
+            <span class="tool-icon">
+                🏙️
+            </span>
+
+            <span class="tool-label">
+                CITY
+            </span>
+
         </button>
 
 
@@ -1111,8 +1756,15 @@
             class="tool"
             id="statsButton"
         >
-            <span class="tool-icon">📊</span>
-            <span class="tool-label">STATS</span>
+
+            <span class="tool-icon">
+                📊
+            </span>
+
+            <span class="tool-label">
+                STATS
+            </span>
+
         </button>
 
 
@@ -1120,26 +1772,39 @@
             class="tool"
             id="settingsButton"
         >
-            <span class="tool-icon">⚙️</span>
-            <span class="tool-label">SETTINGS</span>
+
+            <span class="tool-icon">
+                ⚙️
+            </span>
+
+            <span class="tool-label">
+                SETTINGS
+            </span>
+
         </button>
 
     </nav>
 
 
     <!-- =====================================================
-         MAIN GAME SCRIPT
+         GAME ENGINE
     ====================================================== -->
 
     <script type="module">
 
-        import { RoadEngine }
-            from "./RoadEngine.js";
+        import {
+            RoadEngine
+        } from "./RoadEngine.js";
+
+
+        import {
+            BuildingEngine
+        } from "./BuildingEngine.js";
 
 
         /* =====================================================
            CANVAS
-        ====================================================== */
+        ===================================================== */
 
         const canvas =
             document.getElementById("game");
@@ -1206,8 +1871,8 @@
 
 
         /* =====================================================
-           CITY STATE
-        ====================================================== */
+           CITY
+        ===================================================== */
 
         const city = {
 
@@ -1232,7 +1897,7 @@
 
         /* =====================================================
            CAMERA
-        ====================================================== */
+        ===================================================== */
 
         const camera = {
 
@@ -1244,7 +1909,7 @@
 
             targetZoom: 1,
 
-            minZoom: 0.45,
+            minZoom: .45,
 
             maxZoom: 3
 
@@ -1253,7 +1918,7 @@
 
         /* =====================================================
            WORLD
-        ====================================================== */
+        ===================================================== */
 
         const world = {
 
@@ -1263,8 +1928,8 @@
 
 
         /* =====================================================
-           ROAD ENGINE
-        ====================================================== */
+           ENGINES
+        ===================================================== */
 
         const roadEngine =
             new RoadEngine(
@@ -1274,9 +1939,17 @@
             );
 
 
+        const buildingEngine =
+            new BuildingEngine(
+                city,
+                camera,
+                canvas
+            );
+
+
         /* =====================================================
            BUILD MENU
-        ====================================================== */
+        ===================================================== */
 
         const buildMenu =
             document.getElementById(
@@ -1284,117 +1957,99 @@
             );
 
 
-        const buildButton =
-            document.getElementById(
-                "buildButton"
+        document
+            .getElementById("buildButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    buildMenu.classList.toggle(
+                        "open"
+                    );
+
+                }
             );
 
 
-        const closeBuild =
-            document.getElementById(
-                "closeBuild"
+        document
+            .getElementById("closeBuild")
+            .addEventListener(
+                "click",
+                () => {
+
+                    buildMenu.classList.remove(
+                        "open"
+                    );
+
+                }
             );
-
-
-        buildButton.addEventListener(
-            "click",
-            () => {
-
-                buildMenu.classList.toggle(
-                    "open"
-                );
-
-            }
-        );
-
-
-        closeBuild.addEventListener(
-            "click",
-            () => {
-
-                buildMenu.classList.remove(
-                    "open"
-                );
-
-            }
-        );
 
 
         /* =====================================================
-           BUILD TOOLS
-        ====================================================== */
+           BUILD TOOL SELECT
+        ===================================================== */
 
         document
             .querySelectorAll(".build-item")
-            .forEach(button => {
+            .forEach(
+                button => {
 
-                button.addEventListener(
-                    "click",
-                    () => {
+                    button.addEventListener(
+                        "click",
+                        () => {
 
-                        const tool =
-                            button.dataset.tool;
-
-
-                        city.currentTool =
-                            tool;
+                            const tool =
+                                button.dataset.tool;
 
 
-                        document
-                            .querySelectorAll(
-                                ".build-item"
-                            )
-                            .forEach(item => {
+                            city.currentTool =
+                                tool;
 
-                                item.classList.remove(
-                                    "selected"
+
+                            document
+                                .querySelectorAll(
+                                    ".build-item"
+                                )
+                                .forEach(
+                                    item => {
+
+                                        item.classList
+                                            .remove(
+                                                "selected"
+                                            );
+
+                                    }
                                 );
 
-                            });
+
+                            button.classList.add(
+                                "selected"
+                            );
 
 
-                        button.classList.add(
-                            "selected"
-                        );
+                            buildMenu.classList.remove(
+                                "open"
+                            );
 
 
-                        buildMenu.classList.remove(
-                            "open"
-                        );
+                            updateToolIndicator(
+                                tool
+                            );
 
+                        }
+                    );
 
-                        updateToolIndicator(
-                            tool
-                        );
-
-
-                        showNotification(
-                            "Build Mode",
-                            `Selected: ${formatToolName(tool)}`
-                        );
-
-                    }
-                );
-
-            });
-
-
-        function formatToolName(tool) {
-
-            return tool
-                .charAt(0)
-                .toUpperCase()
-                .concat(
-                    tool.slice(1)
-                );
-        }
+                }
+            );
 
 
         /* =====================================================
            TOOL INDICATOR
-        ====================================================== */
+        ===================================================== */
 
-        function updateToolIndicator(tool) {
+        function updateToolIndicator(
+            tool
+        ) {
 
             const indicator =
                 document.getElementById(
@@ -1414,7 +2069,9 @@
 
             indicator.textContent =
                 "Tool: " +
-                formatToolName(tool);
+                formatToolName(
+                    tool
+                );
 
 
             indicator.classList.add(
@@ -1423,9 +2080,26 @@
         }
 
 
+        function formatToolName(
+            tool
+        ) {
+
+            return tool
+                .charAt(0)
+                .toUpperCase()
+                +
+                tool
+                    .slice(1)
+                    .replace(
+                        /_/g,
+                        " "
+                    );
+        }
+
+
         /* =====================================================
-           CAMERA ZOOM
-        ====================================================== */
+           CAMERA
+        ===================================================== */
 
         document
             .getElementById("zoomIn")
@@ -1435,7 +2109,9 @@
 
                     camera.targetZoom =
                         Math.min(
-                            camera.targetZoom * 1.25,
+                            camera.targetZoom *
+                            1.25,
+
                             camera.maxZoom
                         );
 
@@ -1451,7 +2127,9 @@
 
                     camera.targetZoom =
                         Math.max(
-                            camera.targetZoom / 1.25,
+                            camera.targetZoom /
+                            1.25,
+
                             camera.minZoom
                         );
 
@@ -1476,8 +2154,8 @@
 
 
         /* =====================================================
-           CAMERA PAN
-        ====================================================== */
+           CAMERA DRAG
+        ===================================================== */
 
         let cameraPointer = null;
 
@@ -1485,12 +2163,6 @@
         canvas.addEventListener(
             "pointerdown",
             event => {
-
-                /*
-                 * RoadEngine receives the same
-                 * pointer event when Road tool
-                 * is active.
-                 */
 
                 if (
                     city.currentTool ===
@@ -1501,13 +2173,24 @@
                 }
 
 
+                if (
+                    city.currentTool
+                ) {
+
+                    return;
+                }
+
+
                 cameraPointer = {
 
-                    id: event.pointerId,
+                    id:
+                        event.pointerId,
 
-                    x: event.clientX,
+                    x:
+                        event.clientX,
 
-                    y: event.clientY
+                    y:
+                        event.clientY
 
                 };
 
@@ -1562,7 +2245,7 @@
         );
 
 
-        function stopCameraPointer() {
+        function stopCameraDrag() {
 
             cameraPointer = null;
 
@@ -1571,27 +2254,26 @@
 
         canvas.addEventListener(
             "pointerup",
-            stopCameraPointer
+            stopCameraDrag
         );
 
 
         canvas.addEventListener(
             "pointercancel",
-            stopCameraPointer
+            stopCameraDrag
         );
 
 
         /* =====================================================
-           BASIC BUILDING PLACEMENT
-        ====================================================== */
+           BUILDING SELECT
+        ===================================================== */
 
         canvas.addEventListener(
             "click",
             event => {
 
                 if (
-                    !city.currentTool ||
-                    city.currentTool === "road"
+                    city.currentTool
                 ) {
 
                     return;
@@ -1612,56 +2294,395 @@
                     rect.top;
 
 
-                const worldX =
+                const worldPoint =
+                    screenToWorld(
+                        screenX,
+                        screenY
+                    );
+
+
+                const building =
+                    buildingEngine.findBuildingAt(
+                        worldPoint.x,
+                        worldPoint.y
+                    );
+
+
+                if (building) {
+
+                    buildingEngine.selectBuilding(
+                        building
+                    );
+
+                    openBuildingPanel(
+                        building
+                    );
+
+                }
+
+            }
+        );
+
+
+        function screenToWorld(
+            screenX,
+            screenY
+        ) {
+
+            return {
+
+                x:
                     (
                         screenX -
                         width / 2 -
                         camera.x
                     ) /
-                    camera.zoom;
+                    camera.zoom,
 
-
-                const worldY =
+                y:
                     (
                         screenY -
                         height / 2 -
                         camera.y
                     ) /
-                    camera.zoom;
+                    camera.zoom
+
+            };
+        }
 
 
-                const building =
-                    createBuilding(
-                        city.currentTool,
-                        worldX,
-                        worldY
-                    );
+        /* =====================================================
+           BUILDING PANEL
+        ===================================================== */
+
+        let selectedBuilding = null;
 
 
-                if (!building)
-                    return;
+        function openBuildingPanel(
+            building
+        ) {
+
+            selectedBuilding =
+                building;
 
 
-                city.buildings.push(
+            const data =
+                BuildingEngine.TYPES[
+                    building.type
+                ];
+
+
+            if (!data)
+                return;
+
+
+            document.getElementById(
+                "buildingIcon"
+            ).textContent =
+                data.icon;
+
+
+            document.getElementById(
+                "buildingName"
+            ).textContent =
+                data.name;
+
+
+            document.getElementById(
+                "buildingType"
+            ).textContent =
+                "City Infrastructure";
+
+
+            document.getElementById(
+                "buildingLevel"
+            ).innerHTML =
+                `Level <strong>${building.level}</strong>`;
+
+
+            document.getElementById(
+                "panelPopulation"
+            ).textContent =
+                Number(
+                    building.population || 0
+                ).toLocaleString();
+
+
+            document.getElementById(
+                "panelWorkers"
+            ).textContent =
+                Number(
+                    building.workers || 0
+                ).toLocaleString();
+
+
+            const happiness =
+                building.happiness || 0;
+
+
+            document.getElementById(
+                "panelHappiness"
+            ).textContent =
+                happiness >= 0
+                    ? "+" + happiness
+                    : happiness;
+
+
+            const service =
+                buildingEngine.getServiceCoverage(
                     building
                 );
 
 
-                const cost =
-                    getBuildingCost(
-                        city.currentTool
+            document.getElementById(
+                "panelService"
+            ).textContent =
+                service > 0
+                    ? service.toLocaleString()
+                    : "—";
+
+
+            document
+                .getElementById(
+                    "buildingPanel"
+                )
+                .classList.add(
+                    "open"
+                );
+        }
+
+
+        document
+            .getElementById("closePanel")
+            .addEventListener(
+                "click",
+                () => {
+
+                    closeBuildingPanel();
+
+                }
+            );
+
+
+        function closeBuildingPanel() {
+
+            selectedBuilding = null;
+
+            buildingEngine.selectedBuilding =
+                null;
+
+
+            document
+                .getElementById(
+                    "buildingPanel"
+                )
+                .classList.remove(
+                    "open"
+                );
+        }
+
+
+        /* =====================================================
+           UPGRADE
+        ===================================================== */
+
+        document
+            .getElementById(
+                "upgradeBuilding"
+            )
+            .addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        !selectedBuilding
+                    ) {
+
+                        return;
+                    }
+
+
+                    const success =
+                        buildingEngine.upgradeBuilding(
+                            selectedBuilding
+                        );
+
+
+                    if (success) {
+
+                        updateHUD();
+
+                        openBuildingPanel(
+                            selectedBuilding
+                        );
+
+                    }
+
+                }
+            );
+
+
+        /* =====================================================
+           DEMOLISH
+        ===================================================== */
+
+        document
+            .getElementById(
+                "demolishBuilding"
+            )
+            .addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        !selectedBuilding
+                    ) {
+
+                        return;
+                    }
+
+
+                    const confirmed =
+                        window.confirm(
+                            "Demolish this building?"
+                        );
+
+
+                    if (!confirmed)
+                        return;
+
+
+                    buildingEngine.demolishBuilding(
+                        selectedBuilding
                     );
 
 
-                city.money -= cost;
+                    closeBuildingPanel();
+
+                    updateHUD();
+
+                }
+            );
 
 
-                updateHUD();
+        /* =====================================================
+           HUD
+        ===================================================== */
+
+        function updateHUD() {
+
+            document.getElementById(
+                "money"
+            ).textContent =
+                "$" +
+                Math.max(
+                    0,
+                    Math.floor(
+                        city.money
+                    )
+                ).toLocaleString();
+
+
+            document.getElementById(
+                "population"
+            ).textContent =
+                Math.floor(
+                    city.population
+                ).toLocaleString();
+
+
+            document.getElementById(
+                "happiness"
+            ).textContent =
+                Math.round(
+                    city.happiness
+                ) +
+                "%";
+
+
+            document.getElementById(
+                "power"
+            ).textContent =
+                Math.round(
+                    city.power
+                ) +
+                "%";
+
+        }
+
+
+        /* =====================================================
+           NOTIFICATION
+        ===================================================== */
+
+        let notificationTimer = null;
+
+
+        function showNotification(
+            title,
+            text
+        ) {
+
+            const box =
+                document.getElementById(
+                    "notification"
+                );
+
+
+            document.getElementById(
+                "notificationTitle"
+            ).textContent =
+                title;
+
+
+            document.getElementById(
+                "notificationText"
+            ).textContent =
+                text;
+
+
+            box.classList.add(
+                "show"
+            );
+
+
+            clearTimeout(
+                notificationTimer
+            );
+
+
+            notificationTimer =
+                setTimeout(
+                    () => {
+
+                        box.classList.remove(
+                            "show"
+                        );
+
+                    },
+                    2800
+                );
+        }
+
+
+        /* =====================================================
+           ENGINE NOTIFICATIONS
+        ===================================================== */
+
+        window.addEventListener(
+            "metrocity:notification",
+            event => {
+
+                const detail =
+                    event.detail || {};
 
 
                 showNotification(
-                    "Construction Complete",
-                    `${formatToolName(city.currentTool)} placed.`
+                    detail.title ||
+                        "MetroCity",
+
+                    detail.text ||
+                        ""
                 );
 
             }
@@ -1669,244 +2690,187 @@
 
 
         /* =====================================================
-           BUILDING CREATION
-        ====================================================== */
+           BUILDING EVENTS
+        ===================================================== */
 
-        function createBuilding(
-            type,
-            x,
-            y
-        ) {
+        window.addEventListener(
+            "metrocity:buildingCreated",
+            () => {
 
-            const cost =
-                getBuildingCost(type);
+                updateHUD();
 
-
-            if (
-                city.money < cost
-            ) {
-
-                showNotification(
-                    "Not Enough Money",
-                    "You need more money to build this."
-                );
-
-                return null;
             }
+        );
 
 
-            const settings = {
+        window.addEventListener(
+            "metrocity:buildingUpgraded",
+            event => {
 
-                house: {
-                    size: 46,
-                    color: "#92715e"
-                },
+                updateHUD();
 
-                commercial: {
-                    size: 52,
-                    color: "#5e7690"
-                },
 
-                industrial: {
-                    size: 58,
-                    color: "#817653"
-                },
+                if (
+                    selectedBuilding &&
+                    event.detail &&
+                    event.detail.id ===
+                        selectedBuilding.id
+                ) {
 
-                power: {
-                    size: 64,
-                    color: "#80634b"
-                },
+                    openBuildingPanel(
+                        selectedBuilding
+                    );
 
-                water: {
-                    size: 58,
-                    color: "#507d8c"
-                },
-
-                hospital: {
-                    size: 70,
-                    color: "#815e67"
-                },
-
-                park: {
-                    size: 62,
-                    color: "#4c704d"
                 }
 
-            };
+            }
+        );
 
 
-            const config =
-                settings[type];
+        window.addEventListener(
+            "metrocity:buildingDemolished",
+            () => {
+
+                updateHUD();
+
+            }
+        );
 
 
-            if (!config)
-                return null;
+        window.addEventListener(
+            "metrocity:roadCreated",
+            () => {
 
+                updateHUD();
 
-            return {
-
-                id:
-                    generateId(
-                        "building"
-                    ),
-
-                type,
-
-                x,
-
-                y,
-
-                size:
-                    config.size,
-
-                color:
-                    config.color,
-
-                level: 1,
-
-                createdAt:
-                    Date.now()
-
-            };
-        }
-
-
-        function getBuildingCost(type) {
-
-            const costs = {
-
-                house: 100,
-
-                commercial: 250,
-
-                industrial: 350,
-
-                power: 2000,
-
-                water: 1500,
-
-                hospital: 5000,
-
-                park: 500
-
-            };
-
-
-            return costs[type] || 100;
-        }
+            }
+        );
 
 
         /* =====================================================
-           DRAW WORLD
-        ====================================================== */
+           SPEED
+        ===================================================== */
 
-        function draw() {
+        document
+            .querySelectorAll(
+                ".speed-btn"
+            )
+            .forEach(
+                button => {
 
-            ctx.clearRect(
-                0,
-                0,
-                width,
-                height
+                    button.addEventListener(
+                        "click",
+                        () => {
+
+                            document
+                                .querySelectorAll(
+                                    ".speed-btn"
+                                )
+                                .forEach(
+                                    item => {
+
+                                        item.classList
+                                            .remove(
+                                                "active"
+                                            );
+
+                                    }
+                                );
+
+
+                            button.classList.add(
+                                "active"
+                            );
+
+
+                            window.metroCitySpeed =
+                                Number(
+                                    button.dataset.speed
+                                );
+
+
+                            showNotification(
+                                "Simulation Speed",
+                                `${button.dataset.speed}× speed enabled.`
+                            );
+
+                        }
+                    );
+
+                }
             );
 
 
-            /*
-             * Background
-             */
-
-            ctx.fillStyle =
-                "#101820";
-
-            ctx.fillRect(
-                0,
-                0,
-                width,
-                height
-            );
-
-
-            /*
-             * Camera transform
-             */
-
-            ctx.save();
-
-
-            ctx.translate(
-                width / 2 +
-                camera.x,
-
-                height / 2 +
-                camera.y
-            );
-
-
-            ctx.scale(
-                camera.zoom,
-                camera.zoom
-            );
-
-
-            /*
-             * Ground
-             */
-
-            drawGround();
-
-
-            /*
-             * Grid
-             */
-
-            drawGrid();
-
-
-            /*
-             * Roads
-             */
-
-            drawRoads();
-
-
-            /*
-             * Buildings
-             */
-
-            drawBuildings();
-
-
-            /*
-             * Road preview
-             */
-
-            roadEngine.drawPreview(
-                ctx
-            );
-
-
-            ctx.restore();
-
-
-            /*
-             * Smooth zoom
-             */
-
-            camera.zoom +=
-                (
-                    camera.targetZoom -
-                    camera.zoom
-                ) * 0.12;
-
-
-            requestAnimationFrame(
-                draw
-            );
-        }
+        window.metroCitySpeed = 1;
 
 
         /* =====================================================
-           GROUND
-        ====================================================== */
+           OTHER BUTTONS
+        ===================================================== */
+
+        document
+            .getElementById("mapButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    showNotification(
+                        "Map",
+                        "Map management is ready for the next module."
+                    );
+
+                }
+            );
+
+
+        document
+            .getElementById("cityButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    showNotification(
+                        "City Overview",
+                        `${city.buildings.length} buildings • ${city.roads.length} roads`
+                    );
+
+                }
+            );
+
+
+        document
+            .getElementById("statsButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    showNotification(
+                        "City Statistics",
+                        `Population: ${city.population.toLocaleString()}`
+                    );
+
+                }
+            );
+
+
+        document
+            .getElementById("settingsButton")
+            .addEventListener(
+                "click",
+                () => {
+
+                    showNotification(
+                        "Settings",
+                        "Advanced settings module coming next."
+                    );
+
+                }
+            );
+
+
+        /* =====================================================
+           DRAW GROUND
+        ===================================================== */
 
         function drawGround() {
 
@@ -1915,23 +2879,18 @@
 
 
             ctx.fillRect(
-
                 -world.size / 2,
-
                 -world.size / 2,
-
                 world.size,
-
                 world.size
-
             );
 
         }
 
 
         /* =====================================================
-           GRID
-        ====================================================== */
+           DRAW GRID
+        ===================================================== */
 
         function drawGrid() {
 
@@ -1941,7 +2900,7 @@
 
 
             ctx.strokeStyle =
-                "rgba(255,255,255,0.035)";
+                "rgba(255,255,255,.035)";
 
             ctx.lineWidth = 1;
 
@@ -1996,7 +2955,7 @@
 
         /* =====================================================
            DRAW ROADS
-        ====================================================== */
+        ===================================================== */
 
         function drawRoads() {
 
@@ -2011,10 +2970,6 @@
                 const road
                 of city.roads
             ) {
-
-                /*
-                 * Road border
-                 */
 
                 ctx.strokeStyle =
                     "#15191d";
@@ -2038,10 +2993,6 @@
                 ctx.stroke();
 
 
-                /*
-                 * Road surface
-                 */
-
                 ctx.strokeStyle =
                     "#535960";
 
@@ -2064,12 +3015,8 @@
                 ctx.stroke();
 
 
-                /*
-                 * Center marking
-                 */
-
                 ctx.strokeStyle =
-                    "rgba(255,255,255,0.55)";
+                    "rgba(255,255,255,.50)";
 
                 ctx.lineWidth = 2;
 
@@ -2099,36 +3046,26 @@
             }
 
 
-            /*
-             * Intersections
-             */
-
-            if (
-                city.intersections
+            for (
+                const intersection
+                of city.intersections || []
             ) {
 
-                for (
-                    const intersection
-                    of city.intersections
-                ) {
-
-                    ctx.fillStyle =
-                        "#666c72";
+                ctx.fillStyle =
+                    "#666c72";
 
 
-                    ctx.beginPath();
+                ctx.beginPath();
 
-                    ctx.arc(
-                        intersection.x,
-                        intersection.y,
-                        15,
-                        0,
-                        Math.PI * 2
-                    );
+                ctx.arc(
+                    intersection.x,
+                    intersection.y,
+                    15,
+                    0,
+                    Math.PI * 2
+                );
 
-                    ctx.fill();
-
-                }
+                ctx.fill();
 
             }
 
@@ -2137,7 +3074,7 @@
 
         /* =====================================================
            DRAW BUILDINGS
-        ====================================================== */
+        ===================================================== */
 
         function drawBuildings() {
 
@@ -2145,6 +3082,16 @@
                 const building
                 of city.buildings
             ) {
+
+                const data =
+                    BuildingEngine.TYPES[
+                        building.type
+                    ];
+
+
+                if (!data)
+                    continue;
+
 
                 ctx.save();
 
@@ -2160,14 +3107,14 @@
                  */
 
                 ctx.fillStyle =
-                    "rgba(0,0,0,0.25)";
+                    "rgba(0,0,0,.25)";
 
 
                 ctx.fillRect(
 
-                    -building.size / 2 + 5,
-
                     -building.size / 2 + 6,
+
+                    -building.size / 2 + 7,
 
                     building.size,
 
@@ -2181,7 +3128,7 @@
                  */
 
                 ctx.fillStyle =
-                    building.color;
+                    data.color;
 
 
                 ctx.fillRect(
@@ -2202,7 +3149,7 @@
                  */
 
                 ctx.fillStyle =
-                    "rgba(0,0,0,0.22)";
+                    "rgba(0,0,0,.20)";
 
 
                 ctx.fillRect(
@@ -2228,7 +3175,7 @@
                 ) {
 
                     ctx.fillStyle =
-                        "rgba(255,255,255,0.42)";
+                        "rgba(255,255,255,.38)";
 
 
                     const spacing = 12;
@@ -2238,36 +3185,29 @@
 
                     for (
                         let wx =
-                            -building.size / 2 +
-                            9;
+                            -building.size / 2 + 9;
 
                         wx <
-                            building.size / 2 -
-                            4;
+                            building.size / 2 - 4;
 
                         wx += spacing
                     ) {
 
                         for (
                             let wy =
-                                -building.size / 2 +
-                                15;
+                                -building.size / 2 + 15;
 
                             wy <
-                                building.size / 2 -
-                                4;
+                                building.size / 2 - 4;
 
                             wy += spacing
                         ) {
 
                             ctx.fillRect(
-
                                 wx,
                                 wy,
-
                                 windowSize,
                                 windowSize
-
                             );
 
                         }
@@ -2278,7 +3218,7 @@
 
 
                 /*
-                 * Park decoration
+                 * Park trees
                  */
 
                 if (
@@ -2287,7 +3227,7 @@
                 ) {
 
                     ctx.fillStyle =
-                        "#7f9b62";
+                        "#78925d";
 
 
                     for (
@@ -2306,7 +3246,7 @@
 
                         const radius =
                             building.size *
-                            0.25;
+                            .24;
 
 
                         ctx.beginPath();
@@ -2322,7 +3262,6 @@
                             5,
 
                             0,
-
                             Math.PI * 2
 
                         );
@@ -2330,6 +3269,75 @@
                         ctx.fill();
 
                     }
+
+                }
+
+
+                /*
+                 * Building icon
+                 */
+
+                ctx.textAlign =
+                    "center";
+
+                ctx.textBaseline =
+                    "middle";
+
+                ctx.font =
+                    `${Math.max(
+                        14,
+                        building.size * .30
+                    )}px Arial`;
+
+
+                ctx.fillText(
+                    data.icon,
+                    0,
+                    0
+                );
+
+
+                /*
+                 * Level
+                 */
+
+                if (
+                    building.level > 1
+                ) {
+
+                    ctx.fillStyle =
+                        "rgba(10,10,10,.75)";
+
+
+                    ctx.beginPath();
+
+                    ctx.roundRect(
+                        building.size / 2 - 19,
+                        -building.size / 2 - 8,
+                        28,
+                        15,
+                        5
+                    );
+
+                    ctx.fill();
+
+
+                    ctx.fillStyle =
+                        "white";
+
+
+                    ctx.font =
+                        "bold 8px Arial";
+
+
+                    ctx.fillText(
+                        "LV " +
+                        building.level,
+
+                        building.size / 2 - 5,
+
+                        -building.size / 2
+                    );
 
                 }
 
@@ -2342,272 +3350,169 @@
 
 
         /* =====================================================
-           HUD
-        ====================================================== */
+           DRAW LOOP
+        ===================================================== */
 
-        function updateHUD() {
+        function draw() {
 
-            document.getElementById(
-                "money"
-            ).textContent =
-                "$" +
-                Math.max(
-                    0,
-                    Math.floor(city.money)
-                ).toLocaleString();
-
-
-            document.getElementById(
-                "population"
-            ).textContent =
-                city.population
-                    .toLocaleString();
-
-
-            document.getElementById(
-                "happiness"
-            ).textContent =
-                city.happiness +
-                "%";
-
-
-            document.getElementById(
-                "power"
-            ).textContent =
-                city.power +
-                "%";
-
-        }
-
-
-        /* =====================================================
-           NOTIFICATION
-        ====================================================== */
-
-        let notificationTimer = null;
-
-
-        function showNotification(
-            title,
-            text
-        ) {
-
-            const box =
-                document.getElementById(
-                    "notification"
-                );
-
-
-            document.getElementById(
-                "notificationTitle"
-            ).textContent =
-                title;
-
-
-            document.getElementById(
-                "notificationText"
-            ).textContent =
-                text;
-
-
-            box.classList.add(
-                "show"
+            ctx.clearRect(
+                0,
+                0,
+                width,
+                height
             );
 
 
-            clearTimeout(
-                notificationTimer
+            ctx.fillStyle =
+                "#101820";
+
+
+            ctx.fillRect(
+                0,
+                0,
+                width,
+                height
             );
 
 
-            notificationTimer =
-                setTimeout(
-                    () => {
-
-                        box.classList.remove(
-                            "show"
-                        );
-
-                    },
-                    2600
-                );
-
-        }
+            ctx.save();
 
 
-        /* =====================================================
-           SIMULATION SPEED
-        ====================================================== */
+            ctx.translate(
+                width / 2 +
+                camera.x,
 
-        document
-            .querySelectorAll(
-                ".speed-btn"
-            )
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        document
-                            .querySelectorAll(
-                                ".speed-btn"
-                            )
-                            .forEach(
-                                item =>
-                                    item.classList
-                                        .remove(
-                                            "active"
-                                        )
-                            );
-
-
-                        button.classList.add(
-                            "active"
-                        );
-
-
-                        const speed =
-                            Number(
-                                button.dataset.speed
-                            );
-
-
-                        window.metroCitySpeed =
-                            speed;
-
-
-                        showNotification(
-                            "Simulation Speed",
-                            `${speed}× speed enabled.`
-                        );
-
-                    }
-                );
-
-            });
-
-
-        window.metroCitySpeed = 1;
-
-
-        /* =====================================================
-           CITY BUTTONS
-        ====================================================== */
-
-        document
-            .getElementById("mapButton")
-            .addEventListener(
-                "click",
-                () => {
-
-                    showNotification(
-                        "Map",
-                        "Map management will be added in the next module."
-                    );
-
-                }
+                height / 2 +
+                camera.y
             );
 
 
-        document
-            .getElementById("cityButton")
-            .addEventListener(
-                "click",
-                () => {
-
-                    showNotification(
-                        "City",
-                        `${city.buildings.length} buildings and ${city.roads.length} roads.`
-                    );
-
-                }
+            ctx.scale(
+                camera.zoom,
+                camera.zoom
             );
 
 
-        document
-            .getElementById("statsButton")
-            .addEventListener(
-                "click",
-                () => {
+            drawGround();
 
-                    showNotification(
-                        "Statistics",
-                        `Population: ${city.population.toLocaleString()}`
-                    );
+            drawGrid();
 
-                }
+            drawRoads();
+
+            drawBuildings();
+
+
+            /*
+             * Building preview
+             */
+
+            buildingEngine.drawPreview(
+                ctx
             );
 
 
-        document
-            .getElementById("settingsButton")
-            .addEventListener(
-                "click",
-                () => {
+            /*
+             * Road preview
+             */
 
-                    showNotification(
-                        "Settings",
-                        "Game settings module will be added later."
-                    );
+            if (
+                roadEngine &&
+                typeof roadEngine.drawPreview ===
+                    "function"
+            ) {
 
-                }
-            );
-
-
-        /* =====================================================
-           ID GENERATOR
-        ====================================================== */
-
-        function generateId(
-            prefix
-        ) {
-
-            return (
-                prefix +
-                "_" +
-                Date.now() +
-                "_" +
-                Math.random()
-                    .toString(36)
-                    .slice(2, 8)
-            );
-
-        }
-
-
-        /* =====================================================
-           ROAD CREATED EVENT
-        ====================================================== */
-
-        window.addEventListener(
-            "metrocity:roadCreated",
-            event => {
-
-                updateHUD();
-
-
-                showNotification(
-                    "Road Built",
-                    `${Math.round(event.detail.length)}m road constructed.`
+                roadEngine.drawPreview(
+                    ctx
                 );
 
             }
-        );
+
+
+            /*
+             * Selected building
+             */
+
+            if (
+                buildingEngine.selectedBuilding
+            ) {
+
+                const building =
+                    buildingEngine.selectedBuilding;
+
+
+                ctx.save();
+
+
+                ctx.strokeStyle =
+                    "rgba(255,255,255,.95)";
+
+
+                ctx.lineWidth = 2;
+
+
+                ctx.setLineDash([
+                    6,
+                    5
+                ]);
+
+
+                ctx.strokeRect(
+
+                    building.x -
+                        building.size / 2 -
+                        6,
+
+                    building.y -
+                        building.size / 2 -
+                        6,
+
+                    building.size + 12,
+
+                    building.size + 12
+
+                );
+
+
+                ctx.setLineDash([]);
+
+
+                ctx.restore();
+
+            }
+
+
+            ctx.restore();
+
+
+            /*
+             * Smooth zoom
+             */
+
+            camera.zoom +=
+                (
+                    camera.targetZoom -
+                    camera.zoom
+                ) *
+                .12;
+
+
+            requestAnimationFrame(
+                draw
+            );
+
+        }
 
 
         /* =====================================================
-           START
-        ====================================================== */
-
-        city.currentTool = null;
+           INITIALIZE
+        ===================================================== */
 
         updateHUD();
 
 
         showNotification(
             "Welcome to MetroCity",
-            "Tap BUILD → Road, then drag across the map."
+            "Tap BUILD to start creating your city."
         );
 
 
