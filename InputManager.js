@@ -2354,3 +2354,78 @@ export class InputManager {
             false;
     }
 }
+/* ========================================================
+   NEW UI MODULES
+======================================================== */
+
+try {
+
+    mapUI = new MapUI({
+        city,
+        camera,
+        canvas,
+        renderer,
+        roadEngine,
+        buildingEngine
+    });
+
+} catch (error) {
+
+    console.warn(
+        "MetroCity: MapUI initialization failed.",
+        error
+    );
+}
+
+
+try {
+
+    cityUI = new CityUI({
+        city,
+        buildingEngine,
+        roadEngine,
+        uiManager
+    });
+
+} catch (error) {
+
+    console.warn(
+        "MetroCity: CityUI initialization failed.",
+        error
+    );
+}
+
+
+try {
+
+    statsUI = new StatsUI({
+        city,
+        buildingEngine,
+        roadEngine
+    });
+
+} catch (error) {
+
+    console.warn(
+        "MetroCity: StatsUI initialization failed.",
+        error
+    );
+}
+
+
+try {
+
+    settingsUI = new SettingsUI({
+        city,
+        camera,
+        runtime,
+        renderer
+    });
+
+} catch (error) {
+
+    console.warn(
+        "MetroCity: SettingsUI initialization failed.",
+        error
+    );
+}
