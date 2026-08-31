@@ -26,6 +26,11 @@ import { UIManager } from "./UIManager.js";
 import { SaveManager } from "./SaveManager.js";
 import { InputManager } from "./InputManager.js";
 
+import { MapUI } from "./MapUI.js";
+import { CityUI } from "./CityUI.js";
+import { StatsUI } from "./StatsUI.js";
+import { SettingsUI } from "./SettingsUI.js";
+
 
 /* ============================================================
    APP CONFIG
