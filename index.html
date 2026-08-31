@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>MetroCity</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #10151c;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        #game {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+
+        /* =========================
+           TOP HUD
+        ========================= */
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 72px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 10px 14px;
+
+            color: white;
+
+            background: rgba(10, 14, 20, 0.82);
+            backdrop-filter: blur(14px);
+
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+
+            z-index: 10;
+        }
+
+        .logo {
+            min-width: 125px;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .logo span {
+            opacity: 0.55;
+            font-size: 11px;
+            display: block;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .stats {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .stats::-webkit-scrollbar {
+            display: none;
+        }
+
+        .stat {
+            min-width: 105px;
+            padding: 9px 12px;
+
+            border-radius: 12px;
+
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.06);
+
+            white-space: nowrap;
+        }
+
+        .stat small {
+            display: block;
+            opacity: 0.55;
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .stat strong {
+            font-size: 14px;
+        }
+
+        /* =========================
+           NOTIFICATION
+        ========================= */
+
+        .notification {
+            position: fixed;
+            top: 84px;
+            right: 14px;
+
+            width: min(330px, calc(100vw - 28px));
+
+            padding: 13px 15px;
+
+            color: white;
+
+            background: rgba(14, 19, 27, 0.9);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+
+            backdrop-filter: blur(14px);
+
+            transform: translateY(-20px);
+            opacity: 0;
+            pointer-events: none;
+
+            transition: 0.25s ease;
+
+            z-index: 20;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* =========================
+           BUILD MENU
+        ========================= */
+
+        .build-menu {
+            position: fixed;
+            left: 50%;
+            bottom: 82px;
+
+            transform: translateX(-50%) translateY(30px);
+
+            width: min(720px, calc(100vw - 24px));
+
+            padding: 14px;
+
+            background: rgba(12, 17, 24, 0.94);
+            border: 1px solid rgba(255,255,255,0.08);
+
+            border-radius: 20px;
+
+            backdrop-filter: blur(18px);
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: 0.25s ease;
+
+            z-index: 30;
+        }
+
+        .build-menu.open {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .build-title {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .build-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .build-item {
+            min-height: 70px;
+
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+
+            background: rgba(255,255,255,0.06);
+            color: white;
+
+            cursor: pointer;
+        }
+
+        .build-item:active {
+            transform: scale(0.96);
+            background: rgba(255,255,255,0.13);
+        }
+
+        .build-item .icon {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .build-item span:last-child {
+            font-size: 11px;
+            opacity: 0.75;
+        }
+
+        /* =========================
+           BOTTOM TOOLBAR
+        ========================= */
+
+        .toolbar {
+            position: fixed;
+            left: 50%;
+            bottom: 10px;
+
+            transform: translateX(-50%);
+
+            width: min(760px, calc(100vw - 20px));
+
+            height: 62px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+
+            padding: 6px;
+
+            background: rgba(10, 14, 20, 0.92);
+            border: 1px solid rgba(255,255,255,0.08);
+
+            border-radius: 18px;
+
+            backdrop-filter: blur(18px);
+
+            z-index: 25;
+        }
+
+        .tool {
+            width: 58px;
+            height: 50px;
+
+            border: 0;
+            border-radius: 13px;
+
+            background: transparent;
+            color: white;
+
+            cursor: pointer;
+        }
+
+        .tool.active,
+        .tool:active {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tool-icon {
+            display: block;
+            font-size: 21px;
+            margin-bottom: 2px;
+        }
+
+        .tool-label {
+            display: block;
+            font-size: 9px;
+            opacity: 0.55;
+        }
+
+        /* =========================
+           CAMERA CONTROLS
+        ========================= */
+
+        .camera-controls {
+            position: fixed;
+            right: 14px;
+            bottom: 86px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+
+            z-index: 15;
+        }
+
+        .camera-btn {
+            width: 44px;
+            height: 44px;
+
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+
+            background: rgba(10,14,20,0.82);
+            color: white;
+
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 600px) {
+
+            .topbar {
+                height: 64px;
+                padding: 8px 10px;
+            }
+
+            .logo {
+                min-width: 92px;
+                font-size: 17px;
+            }
+
+            .logo span {
+                font-size: 9px;
+            }
+
+            .stat {
+                min-width: 92px;
+                padding: 8px 9px;
+            }
+
+            .stat strong {
+                font-size: 12px;
+            }
+
+            .build-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .build-item {
+                min-height: 62px;
+            }
+
+            .tool {
+                width: 48px;
+            }
+
+            .camera-controls {
+                bottom: 84px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 3D GAME -->
+    <canvas id="game"></canvas>
+
+    <!-- TOP HUD -->
+    <header class="topbar">
+
+        <div class="logo">
+            METROCITY
+            <span>CITY SIMULATOR</span>
+        </div>
+
+        <div class="stats">
+
+            <div class="stat">
+                <small>💰 MONEY</small>
+                <strong id="money">$125,000</strong>
+            </div>
+
+            <div class="stat">
+                <small>👥 POPULATION</small>
+                <strong id="population">1,250</strong>
+            </div>
+
+            <div class="stat">
+                <small>😊 HAPPINESS</small>
+                <strong id="happiness">82%</strong>
+            </div>
+
+            <div class="stat">
+                <small>⚡ POWER</small>
+                <strong id="power">100%</strong>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- NOTIFICATION -->
+    <div id="notification" class="notification">
+        <strong id="notificationTitle">Welcome to MetroCity</strong>
+        <div id="notificationText">
+            Start building your city.
+        </div>
+    </div>
+
+    <!-- BUILD MENU -->
+    <section id="buildMenu" class="build-menu">
+
+        <div class="build-title">
+            Build
+        </div>
+
+        <div class="build-grid">
+
+            <button class="build-item" data-tool="road">
+                <span class="icon">🛣️</span>
+                <span>Road</span>
+            </button>
+
+            <button class="build-item" data-tool="house">
+                <span class="icon">🏠</span>
+                <span>House</span>
+            </button>
+
+            <button class="build-item" data-tool="commercial">
+                <span class="icon">🏢</span>
+                <span>Commercial</span>
+            </button>
+
+            <button class="build-item" data-tool="industrial">
+                <span class="icon">🏭</span>
+                <span>Industrial</span>
+            </button>
+
+            <button class="build-item" data-tool="power">
+                <span class="icon">⚡</span>
+                <span>Power</span>
+            </button>
+
+            <button class="build-item" data-tool="water">
+                <span class="icon">💧</span>
+                <span>Water</span>
+            </button>
+
+            <button class="build-item" data-tool="hospital">
+                <span class="icon">🏥</span>
+                <span>Hospital</span>
+            </button>
+
+            <button class="build-item" data-tool="park">
+                <span class="icon">🌳</span>
+                <span>Park</span>
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- CAMERA CONTROLS -->
+    <div class="camera-controls">
+
+        <button class="camera-btn" id="zoomIn">
+            +
+        </button>
+
+        <button class="camera-btn" id="resetCamera">
+            ◎
+        </button>
+
+        <button class="camera-btn" id="zoomOut">
+            −
+        </button>
+
+    </div>
+
+    <!-- BOTTOM TOOLBAR -->
+    <nav class="toolbar">
+
+        <button class="tool active" id="buildButton">
+            <span class="tool-icon">🏗️</span>
+            <span class="tool-label">BUILD</span>
+        </button>
+
+        <button class="tool" id="mapButton">
+            <span class="tool-icon">🗺️</span>
+            <span class="tool-label">MAP</span>
+        </button>
+
+        <button class="tool" id="cityButton">
+            <span class="tool-icon">🏙️</span>
+            <span class="tool-label">CITY</span>
+        </button>
+
+        <button class="tool" id="statsButton">
+            <span class="tool-icon">📊</span>
+            <span class="tool-label">STATS</span>
+        </button>
+
+        <button class="tool" id="settingsButton">
+            <span class="tool-icon">⚙️</span>
+            <span class="tool-label">SETTINGS</span>
+        </button>
+
+    </nav>
+
+    <script type="module">
+
+        /*
+         * MetroCity V1
+         * Basic browser game foundation.
+         *
+         * Next systems:
+         * Road Engine
+         * Building Engine
+         * Zoning
+         * Citizens
+         * Traffic
+         * Economy
+         */
+
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+
+        function resize() {
+
+            width = window.innerWidth;
+            height = window.innerHeight;
+
+            canvas.width = width * devicePixelRatio;
+            canvas.height = height * devicePixelRatio;
+
+            canvas.style.width = width + "px";
+            canvas.style.height = height + "px";
+
+            ctx.setTransform(
+                devicePixelRatio,
+                0,
+                0,
+                devicePixelRatio,
+                0,
+                0
+            );
+        }
+
+        window.addEventListener("resize", resize);
+        resize();
+
+        /* =========================
+           CITY WORLD
+        ========================= */
+
+        const city = {
+            money: 125000,
+            population: 1250,
+            happiness: 82,
+            power: 100
+        };
+
+        /* =========================
+           CAMERA
+        ========================= */
+
+        const camera = {
+            x: 0,
+            y: 0,
+            zoom: 1,
+            targetZoom: 1
+        };
+
+        /* =========================
+           WORLD
+        ========================= */
+
+        const world = {
+            roads: [],
+            buildings: []
+        };
+
+        /* =========================
+           DRAW CITY
+        ========================= */
+
+        function draw() {
+
+            ctx.clearRect(0, 0, width, height);
+
+            /*
+             * Background
+             */
+
+            ctx.fillStyle = "#101820";
+            ctx.fillRect(0, 0, width, height);
+
+            /*
+             * Ground
+             */
+
+            const groundSize = 2400;
+
+            ctx.save();
+
+            ctx.translate(
+                width / 2 + camera.x,
+                height / 2 + camera.y
+            );
+
+            ctx.scale(camera.zoom, camera.zoom);
+
+            ctx.fillStyle = "#283b2e";
+
+            ctx.fillRect(
+                -groundSize / 2,
+                -groundSize / 2,
+                groundSize,
+                groundSize
+            );
+
+            /*
+             * Grid
+             */
+
+            drawGrid();
+
+            /*
+             * Roads
+             */
+
+            drawRoads();
+
+            /*
+             * Buildings
+             */
+
+            drawBuildings();
+
+            ctx.restore();
+
+            /*
+             * Smooth camera zoom
+             */
+
+            camera.zoom +=
+                (camera.targetZoom - camera.zoom) * 0.12;
+
+            requestAnimationFrame(draw);
+        }
+
+        function drawGrid() {
+
+            const size = 100;
+            const range = 1200;
+
+            ctx.strokeStyle = "rgba(255,255,255,0.035)";
+            ctx.lineWidth = 1;
+
+            for (let x = -range; x <= range; x += size) {
+
+                ctx.beginPath();
+                ctx.moveTo(x, -range);
+                ctx.lineTo(x, range);
+                ctx.stroke();
+            }
+
+            for (let y = -range; y <= range; y += size) {
+
+                ctx.beginPath();
+                ctx.moveTo(-range, y);
+                ctx.lineTo(range, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawRoads() {
+
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            for (const road of world.roads) {
+
+                ctx.strokeStyle = "#171b20";
+                ctx.lineWidth = 34;
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    road.x1,
+                    road.y1
+                );
+
+                ctx.lineTo(
+                    road.x2,
+                    road.y2
+                );
+
+                ctx.stroke();
+
+                ctx.strokeStyle = "#4d5359";
+                ctx.lineWidth = 26;
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    road.x1,
+                    road.y1
+                );
+
+                ctx.lineTo(
+                    road.x2,
+                    road.y2
+                );
+
+                ctx.stroke();
+
+                ctx.strokeStyle = "rgba(255,255,255,0.18)";
+                ctx.lineWidth = 2;
+
+                ctx.setLineDash([12, 12]);
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    road.x1,
+                    road.y1
+                );
+
+                ctx.lineTo(
+                    road.x2,
+                    road.y2
+                );
+
+                ctx.stroke();
+
+                ctx.setLineDash([]);
+            }
+        }
+
+        function drawBuildings() {
+
+            for (const building of world.buildings) {
+
+                ctx.save();
+
+                ctx.translate(
+                    building.x,
+                    building.y
+                );
+
+                ctx.fillStyle = building.color;
+
+                ctx.fillRect(
+                    -building.size / 2,
+                    -building.size / 2,
+                    building.size,
+                    building.size
+                );
+
+                /*
+                 * Building roof
+                 */
+
+                ctx.fillStyle = "rgba(0,0,0,0.25)";
+
+                ctx.fillRect(
+                    -building.size / 2,
+                    -building.size / 2,
+                    building.size,
+                    7
+                );
+
+                /*
+                 * Windows
+                 */
+
+                ctx.fillStyle = "rgba(255,255,255,0.45)";
+
+                const windowSize = 4;
+
+                for (
+                    let wx = -building.size / 2 + 9;
+                    wx < building.size / 2 - 4;
+                    wx += 12
+                ) {
+
+                    for (
+                        let wy = -building.size / 2 + 15;
+                        wy < building.size / 2 - 4;
+                        wy += 12
+                    ) {
+
+                        ctx.fillRect(
+                            wx,
+                            wy,
+                            windowSize,
+                            windowSize
+                        );
+                    }
+                }
+
+                ctx.restore();
+            }
+        }
+
+        /* =========================
+           UI
+        ========================= */
+
+        const buildMenu =
+            document.getElementById("buildMenu");
+
+        const buildButton =
+            document.getElementById("buildButton");
+
+        buildButton.addEventListener("click", () => {
+
+            buildMenu.classList.toggle("open");
+
+        });
+
+        /* =========================
+           BUILD ITEMS
+        ========================= */
+
+        let currentTool = null;
+
+        document
+            .querySelectorAll(".build-item")
+            .forEach(button => {
+
+                button.addEventListener("click", () => {
+
+                    currentTool =
+                        button.dataset.tool;
+
+                    buildMenu.classList.remove("open");
+
+                    showNotification(
+                        "Build Mode",
+                        `Selected: ${currentTool}`
+                    );
+
+                });
+
+            });
+
+        /* =========================
+           CAMERA BUTTONS
+        ========================= */
+
+        document
+            .getElementById("zoomIn")
+            .addEventListener("click", () => {
+
+                camera.targetZoom =
+                    Math.min(
+                        camera.targetZoom * 1.25,
+                        3
+                    );
+            });
+
+        document
+            .getElementById("zoomOut")
+            .addEventListener("click", () => {
+
+                camera.targetZoom =
+                    Math.max(
+                        camera.targetZoom / 1.25,
+                        0.45
+                    );
+            });
+
+        document
+            .getElementById("resetCamera")
+            .addEventListener("click", () => {
+
+                camera.x = 0;
+                camera.y = 0;
+
+                camera.targetZoom = 1;
+
+            });
+
+        /* =========================
+           NOTIFICATION
+        ========================= */
+
+        let notificationTimer;
+
+        function showNotification(title, text) {
+
+            const box =
+                document.getElementById("notification");
+
+            document.getElementById(
+                "notificationTitle"
+            ).textContent = title;
+
+            document.getElementById(
+                "notificationText"
+            ).textContent = text;
+
+            box.classList.add("show");
+
+            clearTimeout(notificationTimer);
+
+            notificationTimer =
+                setTimeout(() => {
+
+                    box.classList.remove("show");
+
+                }, 2500);
+        }
+
+        /* =========================
+           TOUCH CAMERA
+        ========================= */
+
+        let pointerStart = null;
+
+        canvas.addEventListener(
+            "pointerdown",
+            event => {
+
+                pointerStart = {
+                    x: event.clientX,
+                    y: event.clientY
+                };
+
+            }
+        );
+
+        canvas.addEventListener(
+            "pointermove",
+            event => {
+
+                if (!pointerStart)
+                    return;
+
+                const dx =
+                    event.clientX - pointerStart.x;
+
+                const dy =
+                    event.clientY - pointerStart.y;
+
+                camera.x += dx;
+                camera.y += dy;
+
+                pointerStart.x = event.clientX;
+                pointerStart.y = event.clientY;
+
+            }
+        );
+
+        canvas.addEventListener(
+            "pointerup",
+            () => {
+
+                pointerStart = null;
+
+            }
+        );
+
+        canvas.addEventListener(
+            "pointercancel",
+            () => {
+
+                pointerStart = null;
+
+            }
+        );
+
+        /* =========================
+           BASIC BUILDING PLACEMENT
+        ========================= */
+
+        canvas.addEventListener(
+            "click",
+            event => {
+
+                if (!currentTool)
+                    return;
+
+                if (currentTool === "road") {
+
+                    showNotification(
+                        "Road Tool",
+                        "Road drawing engine coming next."
+                    );
+
+                    return;
+                }
+
+                const rect =
+                    canvas.getBoundingClientRect();
+
+                const screenX =
+                    event.clientX - rect.left;
+
+                const screenY =
+                    event.clientY - rect.top;
+
+                const worldX =
+                    (screenX - width / 2 - camera.x)
+                    / camera.zoom;
+
+                const worldY =
+                    (screenY - height / 2 - camera.y)
+                    / camera.zoom;
+
+                let color = "#777";
+
+                if (currentTool === "house")
+                    color = "#9a6f55";
+
+                if (currentTool === "commercial")
+                    color = "#55759a";
+
+                if (currentTool === "industrial")
+                    color = "#8c7a4f";
+
+                if (currentTool === "power")
+                    color = "#8a6845";
+
+                if (currentTool === "water")
+                    color = "#4f8090";
+
+                if (currentTool === "hospital")
+                    color = "#8b5b63";
+
+                if (currentTool === "park")
+                    color = "#47704b";
+
+                world.buildings.push({
+
+                    x: worldX,
+                    y: worldY,
+
+                    size: currentTool === "park"
+                        ? 55
+                        : 45,
+
+                    color,
+
+                    type: currentTool
+
+                });
+
+                city.money -= 100;
+
+                updateHUD();
+
+            });
+
+        /* =========================
+           HUD
+        ========================= */
+
+        function updateHUD() {
+
+            document.getElementById(
+                "money"
+            ).textContent =
+                "$" +
+                Math.max(0, city.money)
+                    .toLocaleString();
+
+            document.getElementById(
+                "population"
+            ).textContent =
+                city.population.toLocaleString();
+
+            document.getElementById(
+                "happiness"
+            ).textContent =
+                city.happiness + "%";
+
+            document.getElementById(
+                "power"
+            ).textContent =
+                city.power + "%";
+        }
+
+        updateHUD();
+
+        /* =========================
+           START
+        ========================= */
+
+        showNotification(
+            "Welcome to MetroCity",
+            "Open BUILD and start creating your city."
+        );
+
+        draw();
+
+    </script>
+
+</body>
+</html>
