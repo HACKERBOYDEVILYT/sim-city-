@@ -1,139 +1,440 @@
 /* ============================================================
-   MetroCity V5 — CameraEngine
-   Desktop + Mobile camera controls
-   Pan • Zoom • Touch • Pinch • Smooth movement
+   METROCITY V5
+   Camera Engine
+   Professional 2D City-Builder Camera
 ============================================================ */
 
 export class CameraEngine {
 
-    constructor(canvas, options = {}) {
-
-        this.canvas = canvas;
-
-        this.x = Number(options.x || 0);
-        this.y = Number(options.y || 0);
-
-        this.zoom = Number(options.zoom || 1);
-
-        this.minZoom = Number(
-            options.minZoom || 0.35
-        );
-
-        this.maxZoom = Number(
-            options.maxZoom || 2.8
-        );
-
-        this.zoomSpeed = Number(
-            options.zoomSpeed || 0.0015
-        );
-
-        this.panSpeed = Number(
-            options.panSpeed || 1
-        );
-
-        this.smoothing = Number(
-            options.smoothing || 0.18
-        );
-
-        this.targetX = this.x;
-        this.targetY = this.y;
-
-        this.targetZoom = this.zoom;
-
-        this.isDragging = false;
-
-        this.dragPointerId = null;
-
-        this.lastPointerX = 0;
-        this.lastPointerY = 0;
-
-        this.pointers = new Map();
-
-        this.lastPinchDistance = null;
-
-        this.lastPinchCenter = null;
-
-        this.velocityX = 0;
-        this.velocityY = 0;
-
-        this.worldWidth =
-            options.worldWidth || 5000;
-
-        this.worldHeight =
-            options.worldHeight || 5000;
-
-        this.enableBounds =
-            options.enableBounds !== false;
-
-        this.bindEvents();
-
-        this.animate();
-    }
-
-
     /* ========================================================
-       EVENT SETUP
+       CONSTRUCTOR
     ======================================================== */
 
-    bindEvents() {
+    constructor(
+        canvas,
+        options = {}
+    ) {
+
+        this.canvas =
+            canvas;
+
+        this.enabled =
+            true;
+
+
+        /* ----------------------------------------------------
+           CAMERA STATE
+        ---------------------------------------------------- */
+
+        this.x =
+            Number(
+                options.x ?? 0
+            );
+
+        this.y =
+            Number(
+                options.y ?? 0
+            );
+
+        this.zoom =
+            Number(
+                options.zoom ?? 1
+            );
+
+        this.targetX =
+            this.x;
+
+        this.targetY =
+            this.y;
+
+        this.targetZoom =
+            this.zoom;
+
+
+        /* ----------------------------------------------------
+           ZOOM LIMITS
+        ---------------------------------------------------- */
+
+        this.minZoom =
+            Number(
+                options.minZoom ?? 0.35
+            );
+
+        this.maxZoom =
+            Number(
+                options.maxZoom ?? 4
+            );
+
+
+        /* ----------------------------------------------------
+           MOVEMENT
+        ---------------------------------------------------- */
+
+        this.panSpeed =
+            Number(
+                options.panSpeed ?? 1
+            );
+
+        this.zoomSpeed =
+            Number(
+                options.zoomSpeed ?? 1
+            );
+
+
+        this.smoothness =
+            Number(
+                options.smoothness ?? 0.16
+            );
+
+
+        /* ----------------------------------------------------
+           WORLD LIMITS
+        ---------------------------------------------------- */
+
+        this.worldWidth =
+            Number(
+                options.worldWidth ?? 2400
+            );
+
+        this.worldHeight =
+            Number(
+                options.worldHeight ?? 2400
+            );
+
+
+        this.limitToWorld =
+            options.limitToWorld !== false;
+
+
+        /* ----------------------------------------------------
+           INTERACTION STATE
+        ---------------------------------------------------- */
+
+        this.pointers =
+            new Map();
+
+
+        this.primaryPointer =
+            null;
+
+
+        this.isDragging =
+            false;
+
+
+        this.dragStart =
+            null;
+
+
+        this.lastPointer =
+            null;
+
+
+        this.dragDistance =
+            0;
+
+
+        this.wasDragged =
+            false;
+
+
+        /* ----------------------------------------------------
+           PINCH ZOOM
+        ---------------------------------------------------- */
+
+        this.pinchActive =
+            false;
+
+
+        this.pinchStartDistance =
+            0;
+
+
+        this.pinchStartZoom =
+            1;
+
+
+        this.pinchCenter =
+            null;
+
+
+        this.pinchWorldPoint =
+            null;
+
+
+        /* ----------------------------------------------------
+           MOUSE WHEEL
+        ---------------------------------------------------- */
+
+        this.wheelZoomEnabled =
+            true;
+
+
+        /* ----------------------------------------------------
+           KEYBOARD
+        ---------------------------------------------------- */
+
+        this.keyboardEnabled =
+            options.keyboard !== false;
+
+
+        this.keys =
+            new Set();
+
+
+        this.keyboardSpeed =
+            Number(
+                options.keyboardSpeed ?? 8
+            );
+
+
+        /* ----------------------------------------------------
+           BOUNDS
+        ---------------------------------------------------- */
+
+        this.padding =
+            Number(
+                options.padding ?? 150
+            );
+
+
+        /* ----------------------------------------------------
+           EVENTS
+        ---------------------------------------------------- */
+
+        this.onChange =
+            typeof options.onChange ===
+            "function"
+                ? options.onChange
+                : null;
+
+
+        this.onDragStart =
+            typeof options.onDragStart ===
+            "function"
+                ? options.onDragStart
+                : null;
+
+
+        this.onDrag =
+            typeof options.onDrag ===
+            "function"
+                ? options.onDrag
+                : null;
+
+
+        this.onDragEnd =
+            typeof options.onDragEnd ===
+            "function"
+                ? options.onDragEnd
+                : null;
+
+
+        this.onZoom =
+            typeof options.onZoom ===
+            "function"
+                ? options.onZoom
+                : null;
+
+
+        /* ----------------------------------------------------
+           TOUCH SETTINGS
+        ---------------------------------------------------- */
 
         this.canvas.style.touchAction =
             "none";
 
+
+        this.attachEvents();
+
+
+        this.updateCanvasCursor();
+
+    }
+
+
+    /* ========================================================
+       EVENT BINDING
+    ======================================================== */
+
+    attachEvents() {
+
+        if (!this.canvas)
+            return;
+
+
+        this.boundPointerDown =
+            event =>
+                this.handlePointerDown(
+                    event
+                );
+
+
+        this.boundPointerMove =
+            event =>
+                this.handlePointerMove(
+                    event
+                );
+
+
+        this.boundPointerUp =
+            event =>
+                this.handlePointerUp(
+                    event
+                );
+
+
+        this.boundPointerCancel =
+            event =>
+                this.handlePointerCancel(
+                    event
+                );
+
+
+        this.boundWheel =
+            event =>
+                this.handleWheel(
+                    event
+                );
+
+
+        this.boundKeyDown =
+            event =>
+                this.handleKeyDown(
+                    event
+                );
+
+
+        this.boundKeyUp =
+            event =>
+                this.handleKeyUp(
+                    event
+                );
+
+
         this.canvas.addEventListener(
             "pointerdown",
-            event =>
-                this.pointerDown(event)
-        );
-
-        this.canvas.addEventListener(
-            "pointermove",
-            event =>
-                this.pointerMove(event)
-        );
-
-        this.canvas.addEventListener(
-            "pointerup",
-            event =>
-                this.pointerUp(event)
-        );
-
-        this.canvas.addEventListener(
-            "pointercancel",
-            event =>
-                this.pointerUp(event)
-        );
-
-        this.canvas.addEventListener(
-            "wheel",
-            event =>
-                this.wheel(event),
+            this.boundPointerDown,
             {
                 passive: false
             }
         );
 
-        /*
-         * Double click / double tap
-         */
 
         this.canvas.addEventListener(
-            "dblclick",
-            event => {
-
-                const point =
-                    this.screenToWorld(
-                        event.clientX,
-                        event.clientY
-                    );
-
-                this.zoomAt(
-                    point.x,
-                    point.y,
-                    1.25
-                );
+            "pointermove",
+            this.boundPointerMove,
+            {
+                passive: false
             }
         );
+
+
+        this.canvas.addEventListener(
+            "pointerup",
+            this.boundPointerUp,
+            {
+                passive: false
+            }
+        );
+
+
+        this.canvas.addEventListener(
+            "pointercancel",
+            this.boundPointerCancel,
+            {
+                passive: false
+            }
+        );
+
+
+        this.canvas.addEventListener(
+            "wheel",
+            this.boundWheel,
+            {
+                passive: false
+            }
+        );
+
+
+        if (
+            this.keyboardEnabled
+        ) {
+
+            window.addEventListener(
+                "keydown",
+                this.boundKeyDown
+            );
+
+
+            window.addEventListener(
+                "keyup",
+                this.boundKeyUp
+            );
+        }
+
+    }
+
+
+    /* ========================================================
+       DESTROY
+    ======================================================== */
+
+    destroy() {
+
+        if (!this.canvas)
+            return;
+
+
+        this.canvas.removeEventListener(
+            "pointerdown",
+            this.boundPointerDown
+        );
+
+
+        this.canvas.removeEventListener(
+            "pointermove",
+            this.boundPointerMove
+        );
+
+
+        this.canvas.removeEventListener(
+            "pointerup",
+            this.boundPointerUp
+        );
+
+
+        this.canvas.removeEventListener(
+            "pointercancel",
+            this.boundPointerCancel
+        );
+
+
+        this.canvas.removeEventListener(
+            "wheel",
+            this.boundWheel
+        );
+
+
+        if (
+            this.keyboardEnabled
+        ) {
+
+            window.removeEventListener(
+                "keydown",
+                this.boundKeyDown
+            );
+
+
+            window.removeEventListener(
+                "keyup",
+                this.boundKeyUp
+            );
+        }
+
+
+        this.pointers.clear();
+
     }
 
 
@@ -141,67 +442,101 @@ export class CameraEngine {
        POINTER DOWN
     ======================================================== */
 
-    pointerDown(event) {
+    handlePointerDown(
+        event
+    ) {
+
+        if (!this.enabled)
+            return;
+
+
+        /*
+         * Ignore non-primary mouse buttons.
+         */
+
+        if (
+            event.pointerType ===
+            "mouse" &&
+            event.button !== 0
+        ) {
+
+            return;
+        }
+
+
+        event.preventDefault();
+
+
+        const point =
+            this.getPointerPosition(
+                event
+            );
+
 
         this.pointers.set(
             event.pointerId,
-            {
-                x: event.clientX,
-                y: event.clientY
-            }
+            point
         );
 
 
         /*
-         * Two fingers = pinch zoom
+         * Two fingers = pinch.
          */
 
         if (
             this.pointers.size >= 2
         ) {
 
-            this.isDragging = false;
-
-            this.setupPinch();
+            this.beginPinch();
 
             return;
         }
 
 
-        /*
-         * Left mouse / primary touch
-         */
-
-        if (
-            event.button !== 0 &&
-            event.pointerType === "mouse"
-        ) {
-
-            return;
-        }
-
-
-        this.isDragging = true;
-
-        this.dragPointerId =
+        this.primaryPointer =
             event.pointerId;
 
-        this.lastPointerX =
-            event.clientX;
 
-        this.lastPointerY =
-            event.clientY;
+        this.isDragging =
+            false;
 
-        this.velocityX = 0;
-        this.velocityY = 0;
 
-        try {
+        this.wasDragged =
+            false;
 
-            this.canvas.setPointerCapture(
-                event.pointerId
-            );
 
-        } catch (_) {}
+        this.dragDistance =
+            0;
+
+
+        this.dragStart = {
+
+            x:
+                point.x,
+
+            y:
+                point.y,
+
+            cameraX:
+                this.targetX,
+
+            cameraY:
+                this.targetY
+        };
+
+
+        this.lastPointer = {
+
+            x:
+                point.x,
+
+            y:
+                point.y
+        };
+
+
+        this.updateCanvasCursor();
+
     }
 
 
@@ -209,44 +544,68 @@ export class CameraEngine {
        POINTER MOVE
     ======================================================== */
 
-    pointerMove(event) {
+    handlePointerMove(
+        event
+    ) {
+
+        if (!this.enabled)
+            return;
+
 
         if (
-            this.pointers.has(
+            !this.pointers.has(
                 event.pointerId
             )
         ) {
 
-            this.pointers.set(
-                event.pointerId,
-                {
-                    x: event.clientX,
-                    y: event.clientY
-                }
-            );
+            return;
         }
 
 
+        event.preventDefault();
+
+
+        const point =
+            this.getPointerPosition(
+                event
+            );
+
+
+        this.pointers.set(
+            event.pointerId,
+            point
+        );
+
+
         /*
-         * Pinch
+         * Pinch.
          */
 
         if (
             this.pointers.size >= 2
         ) {
 
-            this.handlePinch();
+            if (
+                !this.pinchActive
+            ) {
+
+                this.beginPinch();
+            }
+
+
+            this.updatePinch();
 
             return;
         }
 
 
         /*
-         * Normal pan
+         * Only primary pointer drags.
          */
 
         if (
-            !this.isDragging
+            event.pointerId !==
+            this.primaryPointer
         ) {
 
             return;
@@ -254,8 +613,7 @@ export class CameraEngine {
 
 
         if (
-            this.dragPointerId !==
-            event.pointerId
+            !this.dragStart
         ) {
 
             return;
@@ -263,42 +621,100 @@ export class CameraEngine {
 
 
         const dx =
-            event.clientX -
-            this.lastPointerX;
+            point.x -
+            this.dragStart.x;
 
 
         const dy =
-            event.clientY -
-            this.lastPointerY;
+            point.y -
+            this.dragStart.y;
 
 
-        this.lastPointerX =
-            event.clientX;
+        this.dragDistance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
 
-        this.lastPointerY =
-            event.clientY;
+
+        /*
+         * Small movement is treated as click.
+         */
+
+        if (
+            !this.isDragging &&
+            this.dragDistance < 5
+        ) {
+
+            return;
+        }
 
 
-        this.targetX +=
+        if (
+            !this.isDragging
+        ) {
+
+            this.isDragging =
+                true;
+
+
+            this.wasDragged =
+                true;
+
+
+            if (
+                this.onDragStart
+            ) {
+
+                this.onDragStart(
+                    this.getState()
+                );
+            }
+
+
+            this.updateCanvasCursor();
+
+        }
+
+
+        /*
+         * Move camera.
+         */
+
+        const movementScale =
+            1 /
+            Math.max(
+                this.zoom,
+                0.01
+            );
+
+
+        this.targetX =
+            this.dragStart.cameraX +
             dx *
-            this.panSpeed;
+            this.panSpeed *
+            movementScale;
 
 
-        this.targetY +=
+        this.targetY =
+            this.dragStart.cameraY +
             dy *
-            this.panSpeed;
-
-
-        this.velocityX =
-            dx *
-            this.panSpeed;
-
-        this.velocityY =
-            dy *
-            this.panSpeed;
+            this.panSpeed *
+            movementScale;
 
 
         this.clampTarget();
+
+
+        if (
+            this.onDrag
+        ) {
+
+            this.onDrag(
+                this.getState()
+            );
+        }
+
     }
 
 
@@ -306,7 +722,87 @@ export class CameraEngine {
        POINTER UP
     ======================================================== */
 
-    pointerUp(event) {
+    handlePointerUp(
+        event
+    ) {
+
+        if (
+            this.pointers.has(
+                event.pointerId
+            )
+        ) {
+
+            this.pointers.delete(
+                event.pointerId
+            );
+        }
+
+
+        /*
+         * Finish pinch.
+         */
+
+        if (
+            this.pinchActive &&
+            this.pointers.size < 2
+        ) {
+
+            this.endPinch();
+        }
+
+
+        if (
+            event.pointerId !==
+            this.primaryPointer
+        ) {
+
+            return;
+        }
+
+
+        this.primaryPointer =
+            null;
+
+
+        if (
+            this.isDragging
+        ) {
+
+            this.isDragging =
+                false;
+
+
+            if (
+                this.onDragEnd
+            ) {
+
+                this.onDragEnd(
+                    this.getState()
+                );
+            }
+        }
+
+
+        this.dragStart =
+            null;
+
+
+        this.lastPointer =
+            null;
+
+
+        this.updateCanvasCursor();
+
+    }
+
+
+    /* ========================================================
+       POINTER CANCEL
+    ======================================================== */
+
+    handlePointerCancel(
+        event
+    ) {
 
         this.pointers.delete(
             event.pointerId
@@ -314,169 +810,197 @@ export class CameraEngine {
 
 
         if (
+            this.pinchActive &&
             this.pointers.size < 2
         ) {
 
-            this.lastPinchDistance =
-                null;
-
-            this.lastPinchCenter =
-                null;
+            this.endPinch();
         }
 
 
         if (
-            this.dragPointerId ===
-            event.pointerId
+            event.pointerId ===
+            this.primaryPointer
         ) {
 
-            this.isDragging = false;
+            this.primaryPointer =
+                null;
 
-            this.dragPointerId = null;
+            this.dragStart =
+                null;
+
+            this.lastPointer =
+                null;
+
+            this.isDragging =
+                false;
         }
+
+
+        this.updateCanvasCursor();
+
     }
 
 
     /* ========================================================
-       PINCH SETUP
+       PINCH START
     ======================================================== */
 
-    setupPinch() {
-
-        const points =
-            [...this.pointers.values()];
-
+    beginPinch() {
 
         if (
-            points.length < 2
+            this.pointers.size < 2
         ) {
 
             return;
         }
 
 
-        this.lastPinchDistance =
-            this.getPointerDistance(
-                points[0],
-                points[1]
-            );
-
-
-        this.lastPinchCenter =
-            this.getPointerCenter(
-                points[0],
-                points[1]
-            );
-    }
-
-
-    /* ========================================================
-       PINCH HANDLER
-    ======================================================== */
-
-    handlePinch() {
-
         const points =
-            [...this.pointers.values()];
+            Array.from(
+                this.pointers.values()
+            );
+
+
+        const a =
+            points[0];
+
+
+        const b =
+            points[1];
+
+
+        this.pinchStartDistance =
+            this.distance(
+                a,
+                b
+            );
 
 
         if (
-            points.length < 2
+            this.pinchStartDistance <= 0
         ) {
 
             return;
         }
+
+
+        this.pinchStartZoom =
+            this.targetZoom;
+
+
+        this.pinchCenter =
+            this.getCenter(
+                a,
+                b
+            );
+
+
+        this.pinchWorldPoint =
+            this.screenToWorld(
+                this.pinchCenter.x,
+                this.pinchCenter.y
+            );
+
+
+        this.pinchActive =
+            true;
+
+
+        this.isDragging =
+            false;
+
+
+        this.dragStart =
+            null;
+
+    }
+
+
+    /* ========================================================
+       PINCH UPDATE
+    ======================================================== */
+
+    updatePinch() {
+
+        if (
+            !this.pinchActive ||
+            this.pointers.size < 2
+        ) {
+
+            return;
+        }
+
+
+        const points =
+            Array.from(
+                this.pointers.values()
+            );
+
+
+        const a =
+            points[0];
+
+
+        const b =
+            points[1];
 
 
         const distance =
-            this.getPointerDistance(
-                points[0],
-                points[1]
-            );
-
-
-        const center =
-            this.getPointerCenter(
-                points[0],
-                points[1]
+            this.distance(
+                a,
+                b
             );
 
 
         if (
-            !this.lastPinchDistance
+            distance <= 0 ||
+            this.pinchStartDistance <= 0
         ) {
-
-            this.lastPinchDistance =
-                distance;
-
-            this.lastPinchCenter =
-                center;
 
             return;
         }
 
 
-        /*
-         * Move camera with pinch center.
-         */
-
-        if (
-            this.lastPinchCenter
-        ) {
-
-            const dx =
-                center.x -
-                this.lastPinchCenter.x;
-
-
-            const dy =
-                center.y -
-                this.lastPinchCenter.y;
-
-
-            this.targetX += dx;
-
-            this.targetY += dy;
-        }
-
-
-        /*
-         * Zoom.
-         */
-
         const ratio =
             distance /
-            this.lastPinchDistance;
+            this.pinchStartDistance;
 
 
-        if (
-            Number.isFinite(ratio) &&
-            ratio > 0
-        ) {
-
-            const worldPoint =
-                this.screenToWorld(
-                    center.x,
-                    center.y
-                );
+        const nextZoom =
+            this.pinchStartZoom *
+            ratio;
 
 
-            this.setZoomAt(
-                worldPoint.x,
-                worldPoint.y,
-                this.zoom * ratio
-            );
-        }
+        this.setZoom(
+            nextZoom,
+            this.pinchCenter
+        );
+
+    }
 
 
-        this.lastPinchDistance =
-            distance;
+    /* ========================================================
+       PINCH END
+    ======================================================== */
 
-        this.lastPinchCenter =
-            center;
+    endPinch() {
+
+        this.pinchActive =
+            false;
 
 
-        this.clampTarget();
+        this.pinchStartDistance =
+            0;
+
+
+        this.pinchWorldPoint =
+            null;
+
+
+        this.pinchCenter =
+            null;
+
     }
 
 
@@ -484,31 +1008,51 @@ export class CameraEngine {
        WHEEL ZOOM
     ======================================================== */
 
-    wheel(event) {
+    handleWheel(
+        event
+    ) {
+
+        if (
+            !this.enabled ||
+            !this.wheelZoomEnabled
+        ) {
+
+            return;
+        }
+
 
         event.preventDefault();
 
 
-        const worldPoint =
-            this.screenToWorld(
-                event.clientX,
-                event.clientY
+        const point =
+            this.getPointerPosition(
+                event
             );
+
+
+        /*
+         * Positive delta = zoom out.
+         * Negative delta = zoom in.
+         */
+
+        const direction =
+            event.deltaY < 0
+                ? 1
+                : -1;
 
 
         const factor =
-            Math.exp(
-                -event.deltaY *
-                this.zoomSpeed
-            );
+            direction > 0
+                ? 1.12
+                : 1 / 1.12;
 
 
-        this.setZoomAt(
-            worldPoint.x,
-            worldPoint.y,
+        this.setZoom(
             this.targetZoom *
-            factor
+            factor,
+            point
         );
+
     }
 
 
@@ -517,47 +1061,28 @@ export class CameraEngine {
     ======================================================== */
 
     setZoom(
-        zoom
+        value,
+        screenPoint = null
     ) {
-
-        this.targetZoom =
-            this.clamp(
-                zoom,
-                this.minZoom,
-                this.maxZoom
-            );
-
-        this.clampTarget();
-    }
-
-
-    /* ========================================================
-       ZOOM AT WORLD POSITION
-    ======================================================== */
-
-    setZoomAt(
-        worldX,
-        worldY,
-        zoom
-    ) {
-
-        const newZoom =
-            this.clamp(
-                zoom,
-                this.minZoom,
-                this.maxZoom
-            );
-
 
         const oldZoom =
             this.targetZoom;
+
+
+        const newZoom =
+            this.clamp(
+                value,
+                this.minZoom,
+                this.maxZoom
+            );
 
 
         if (
             Math.abs(
                 newZoom -
                 oldZoom
-            ) < 0.00001
+            ) <
+            0.00001
         ) {
 
             return;
@@ -565,118 +1090,311 @@ export class CameraEngine {
 
 
         /*
-         * Keep the cursor/pinch point
-         * fixed while zooming.
+         * Zoom around cursor / pinch center.
          */
 
-        this.targetX =
-            worldX -
-            (
-                worldX -
-                this.targetX
-            ) *
-            (
-                oldZoom /
-                newZoom
-            );
+        if (
+            screenPoint
+        ) {
+
+            const worldPoint =
+                this.screenToWorld(
+                    screenPoint.x,
+                    screenPoint.y,
+                    oldZoom
+                );
 
 
-        this.targetY =
-            worldY -
-            (
-                worldY -
-                this.targetY
-            ) *
-            (
-                oldZoom /
-                newZoom
-            );
+            this.targetZoom =
+                newZoom;
 
 
-        this.targetZoom =
-            newZoom;
+            const afterZoom =
+                this.worldToScreen(
+                    worldPoint.x,
+                    worldPoint.y,
+                    newZoom
+                );
+
+
+            const dx =
+                screenPoint.x -
+                afterZoom.x;
+
+
+            const dy =
+                screenPoint.y -
+                afterZoom.y;
+
+
+            this.targetX +=
+                dx;
+
+
+            this.targetY +=
+                dy;
+
+        } else {
+
+            this.targetZoom =
+                newZoom;
+        }
 
 
         this.clampTarget();
+
+
+        if (
+            this.onZoom
+        ) {
+
+            this.onZoom(
+                newZoom,
+                this.getState()
+            );
+        }
+
     }
 
 
     /* ========================================================
-       QUICK ZOOM
+       ZOOM IN
     ======================================================== */
 
-    zoomAt(
-        worldX,
-        worldY,
-        multiplier
+    zoomIn(
+        amount = 1.25,
+        screenPoint = null
     ) {
 
-        this.setZoomAt(
-            worldX,
-            worldY,
+        this.setZoom(
             this.targetZoom *
-            multiplier
+            amount,
+            screenPoint
         );
+
     }
 
 
     /* ========================================================
-       RESET CAMERA
+       ZOOM OUT
+    ======================================================== */
+
+    zoomOut(
+        amount = 1.25,
+        screenPoint = null
+    ) {
+
+        this.setZoom(
+            this.targetZoom /
+            amount,
+            screenPoint
+        );
+
+    }
+
+
+    /* ========================================================
+       RESET
     ======================================================== */
 
     reset(
-        x = 0,
-        y = 0,
-        zoom = 1
+        animated = true
     ) {
 
-        this.targetX = x;
-        this.targetY = y;
+        if (animated) {
 
-        this.targetZoom =
-            this.clamp(
-                zoom,
-                this.minZoom,
-                this.maxZoom
-            );
+            this.targetX =
+                0;
+
+            this.targetY =
+                0;
+
+            this.targetZoom =
+                1;
+
+        } else {
+
+            this.x =
+                0;
+
+            this.y =
+                0;
+
+            this.zoom =
+                1;
+
+            this.targetX =
+                0;
+
+            this.targetY =
+                0;
+
+            this.targetZoom =
+                1;
+        }
+
+
+        this.clampTarget();
+
     }
 
 
     /* ========================================================
-       CENTER CAMERA
+       MOVE TO
     ======================================================== */
 
-    centerOn(
-        worldX,
-        worldY
+    moveTo(
+        x,
+        y,
+        animated = true
     ) {
+
+        x =
+            Number(x) || 0;
+
+
+        y =
+            Number(y) || 0;
+
+
+        if (animated) {
+
+            this.targetX =
+                x;
+
+            this.targetY =
+                y;
+
+        } else {
+
+            this.x =
+                x;
+
+            this.y =
+                y;
+
+            this.targetX =
+                x;
+
+            this.targetY =
+                y;
+        }
+
+
+        this.clampTarget();
+
+    }
+
+
+    /* ========================================================
+       FOCUS WORLD POINT
+    ======================================================== */
+
+    focus(
+        worldX,
+        worldY,
+        zoom = null
+    ) {
+
+        const canvasCenter =
+            this.getCanvasCenter();
+
+
+        const desiredZoom =
+            zoom === null
+                ? this.targetZoom
+                : this.clamp(
+                    zoom,
+                    this.minZoom,
+                    this.maxZoom
+                );
+
+
+        this.targetZoom =
+            desiredZoom;
+
+
+        this.targetX =
+            canvasCenter.x -
+            worldX *
+            desiredZoom -
+            canvasCenter.x;
+
+
+        this.targetY =
+            canvasCenter.y -
+            worldY *
+            desiredZoom -
+            canvasCenter.y;
+
+
+        /*
+         * Camera coordinates represent
+         * screen-space translation.
+         */
 
         this.targetX =
             -worldX *
-            this.targetZoom;
+            desiredZoom;
 
 
         this.targetY =
             -worldY *
-            this.targetZoom;
+            desiredZoom;
 
 
         this.clampTarget();
+
     }
 
 
     /* ========================================================
-       SMOOTH CAMERA LOOP
+       UPDATE
     ======================================================== */
 
-    animate() {
+    update(
+        delta = 16
+    ) {
+
+        if (!this.enabled)
+            return;
+
+
+        const dt =
+            Math.min(
+                Number(delta) || 16,
+                100
+            );
+
+
+        /*
+         * Keyboard movement.
+         */
+
+        this.updateKeyboard(
+            dt
+        );
+
+
+        /*
+         * Smooth camera.
+         */
+
+        const smoothing =
+            1 -
+            Math.pow(
+                1 -
+                this.smoothness,
+                dt / 16.6667
+            );
+
 
         this.x +=
             (
                 this.targetX -
                 this.x
             ) *
-            this.smoothing;
+            smoothing;
 
 
         this.y +=
@@ -684,7 +1402,7 @@ export class CameraEngine {
                 this.targetY -
                 this.y
             ) *
-            this.smoothing;
+            smoothing;
 
 
         this.zoom +=
@@ -692,85 +1410,253 @@ export class CameraEngine {
                 this.targetZoom -
                 this.zoom
             ) *
-            this.smoothing;
+            smoothing;
 
 
         /*
-         * Small inertial movement after
-         * dragging.
+         * Snap tiny differences.
          */
 
         if (
-            !this.isDragging &&
-            this.pointers.size === 0
+            Math.abs(
+                this.targetX -
+                this.x
+            ) < 0.001
         ) {
 
-            if (
-                Math.abs(
-                    this.velocityX
-                ) > 0.05 ||
-                Math.abs(
-                    this.velocityY
-                ) > 0.05
-            ) {
-
-                this.targetX +=
-                    this.velocityX *
-                    0.08;
-
-                this.targetY +=
-                    this.velocityY *
-                    0.08;
-
-
-                this.velocityX *=
-                    0.88;
-
-                this.velocityY *=
-                    0.88;
-
-
-                this.clampTarget();
-            }
+            this.x =
+                this.targetX;
         }
 
 
-        requestAnimationFrame(
-            () =>
-                this.animate()
-        );
+        if (
+            Math.abs(
+                this.targetY -
+                this.y
+            ) < 0.001
+        ) {
+
+            this.y =
+                this.targetY;
+        }
+
+
+        if (
+            Math.abs(
+                this.targetZoom -
+                this.zoom
+            ) < 0.0001
+        ) {
+
+            this.zoom =
+                this.targetZoom;
+        }
+
+
+        this.clampCurrent();
+
+
+        if (
+            this.onChange
+        ) {
+
+            this.onChange(
+                this.getState()
+            );
+        }
+
     }
 
 
     /* ========================================================
-       APPLY CAMERA TRANSFORM
+       KEYBOARD
     ======================================================== */
 
-    apply(
-        ctx
+    handleKeyDown(
+        event
     ) {
 
-        const width =
-            this.canvas.width;
+        if (!this.keyboardEnabled)
+            return;
 
 
-        const height =
-            this.canvas.height;
+        const key =
+            event.key.toLowerCase();
 
 
-        ctx.translate(
-            width / 2 +
-            this.x,
+        const allowed = [
+            "arrowup",
+            "arrowdown",
+            "arrowleft",
+            "arrowright",
+            "w",
+            "a",
+            "s",
+            "d",
+            "+",
+            "=",
+            "-",
+            "_"
+        ];
 
-            height / 2 +
-            this.y
+
+        if (
+            allowed.includes(
+                key
+            )
+        ) {
+
+            this.keys.add(
+                key
+            );
+
+
+            /*
+             * Don't hijack typing.
+             */
+
+            const target =
+                event.target;
+
+
+            if (
+                target &&
+                (
+                    target.tagName ===
+                        "INPUT" ||
+                    target.tagName ===
+                        "TEXTAREA" ||
+                    target.isContentEditable
+                )
+            ) {
+
+                return;
+            }
+
+
+            event.preventDefault();
+        }
+
+    }
+
+
+    handleKeyUp(
+        event
+    ) {
+
+        this.keys.delete(
+            event.key.toLowerCase()
         );
 
+    }
 
-        ctx.scale(
-            this.zoom,
-            this.zoom
-        );
+
+    updateKeyboard(
+        delta
+    ) {
+
+        if (
+            !this.keyboardEnabled ||
+            this.keys.size === 0
+        ) {
+
+            return;
+        }
+
+
+        const distance =
+            this.keyboardSpeed *
+            (delta / 16.6667) /
+            Math.max(
+                this.zoom,
+                0.01
+            );
+
+
+        let dx =
+            0;
+
+
+        let dy =
+            0;
+
+
+        if (
+            this.keys.has("arrowleft") ||
+            this.keys.has("a")
+        ) {
+
+            dx +=
+                distance;
+        }
+
+
+        if (
+            this.keys.has("arrowright") ||
+            this.keys.has("d")
+        ) {
+
+            dx -=
+                distance;
+        }
+
+
+        if (
+            this.keys.has("arrowup") ||
+            this.keys.has("w")
+        ) {
+
+            dy +=
+                distance;
+        }
+
+
+        if (
+            this.keys.has("arrowdown") ||
+            this.keys.has("s")
+        ) {
+
+            dy -=
+                distance;
+        }
+
+
+        if (dx || dy) {
+
+            this.targetX +=
+                dx;
+
+            this.targetY +=
+                dy;
+
+
+            this.clampTarget();
+        }
+
+
+        if (
+            this.keys.has("+") ||
+            this.keys.has("=")
+        ) {
+
+            this.setZoom(
+                this.targetZoom *
+                1.02
+            );
+        }
+
+
+        if (
+            this.keys.has("-") ||
+            this.keys.has("_")
+        ) {
+
+            this.setZoom(
+                this.targetZoom /
+                1.02
+            );
+        }
+
     }
 
 
@@ -780,42 +1666,40 @@ export class CameraEngine {
 
     screenToWorld(
         screenX,
-        screenY
+        screenY,
+        zoom = this.zoom
     ) {
 
-        const rect =
-            this.canvas.getBoundingClientRect();
+        const center =
+            this.getCanvasCenter();
 
 
-        const localX =
-            screenX -
-            rect.left -
-            rect.width / 2;
-
-
-        const localY =
-            screenY -
-            rect.top -
-            rect.height / 2;
+        const safeZoom =
+            Math.max(
+                zoom,
+                0.0001
+            );
 
 
         return {
 
             x:
                 (
-                    localX -
+                    screenX -
+                    center.x -
                     this.x
                 ) /
-                this.zoom,
+                safeZoom,
 
             y:
                 (
-                    localY -
+                    screenY -
+                    center.y -
                     this.y
                 ) /
-                this.zoom
-
+                safeZoom
         };
+
     }
 
 
@@ -825,114 +1709,429 @@ export class CameraEngine {
 
     worldToScreen(
         worldX,
-        worldY
+        worldY,
+        zoom = this.zoom
     ) {
 
-        const rect =
-            this.canvas.getBoundingClientRect();
+        const center =
+            this.getCanvasCenter();
 
 
         return {
 
             x:
-                rect.left +
-                rect.width / 2 +
+                center.x +
                 this.x +
                 worldX *
-                this.zoom,
+                zoom,
 
             y:
-                rect.top +
-                rect.height / 2 +
+                center.y +
                 this.y +
                 worldY *
-                this.zoom
-
+                zoom
         };
+
     }
 
 
     /* ========================================================
-       BOUNDS
+       GET POINTER
+    ======================================================== */
+
+    getPointerPosition(
+        event
+    ) {
+
+        const rect =
+            this.canvas
+                .getBoundingClientRect();
+
+
+        return {
+
+            x:
+                event.clientX -
+                rect.left,
+
+            y:
+                event.clientY -
+                rect.top
+        };
+
+    }
+
+
+    /* ========================================================
+       CANVAS CENTER
+    ======================================================== */
+
+    getCanvasCenter() {
+
+        return {
+
+            x:
+                this.canvas
+                    .clientWidth /
+                2,
+
+            y:
+                this.canvas
+                    .clientHeight /
+                2
+        };
+
+    }
+
+
+    /* ========================================================
+       WORLD BOUNDS
     ======================================================== */
 
     clampTarget() {
 
         if (
-            !this.enableBounds
+            !this.limitToWorld
         ) {
 
             return;
         }
 
 
-        const rect =
-            this.canvas.getBoundingClientRect();
+        const width =
+            this.canvas.clientWidth;
 
 
-        const viewWidth =
-            rect.width /
-            this.targetZoom;
+        const height =
+            this.canvas.clientHeight;
 
 
-        const viewHeight =
-            rect.height /
-            this.targetZoom;
+        const halfWorldWidth =
+            this.worldWidth *
+            this.targetZoom /
+            2;
+
+
+        const halfWorldHeight =
+            this.worldHeight *
+            this.targetZoom /
+            2;
 
 
         /*
-         * Keep the playable world
-         * roughly inside the camera.
+         * Don't allow the camera to move
+         * infinitely away from the city.
          */
 
         const maxX =
-            this.worldWidth / 2;
-
-
-        const maxY =
-            this.worldHeight / 2;
-
-
-        const limitX =
             Math.max(
-                0,
-                maxX -
-                viewWidth * 0.35
+                this.padding,
+                halfWorldWidth +
+                width / 2
             );
 
 
-        const limitY =
+        const maxY =
             Math.max(
-                0,
-                maxY -
-                viewHeight * 0.35
+                this.padding,
+                halfWorldHeight +
+                height / 2
             );
 
 
         this.targetX =
             this.clamp(
                 this.targetX,
-                -limitX,
-                limitX
+                -maxX,
+                maxX
             );
 
 
         this.targetY =
             this.clamp(
                 this.targetY,
-                -limitY,
-                limitY
+                -maxY,
+                maxY
             );
+
     }
 
 
     /* ========================================================
-       RESIZE
+       CURRENT BOUNDS
+    ======================================================== */
+
+    clampCurrent() {
+
+        if (
+            !this.limitToWorld
+        ) {
+
+            return;
+        }
+
+
+        const width =
+            this.canvas.clientWidth;
+
+
+        const height =
+            this.canvas.clientHeight;
+
+
+        const halfWorldWidth =
+            this.worldWidth *
+            this.zoom /
+            2;
+
+
+        const halfWorldHeight =
+            this.worldHeight *
+            this.zoom /
+            2;
+
+
+        const maxX =
+            Math.max(
+                this.padding,
+                halfWorldWidth +
+                width / 2
+            );
+
+
+        const maxY =
+            Math.max(
+                this.padding,
+                halfWorldHeight +
+                height / 2
+            );
+
+
+        this.x =
+            this.clamp(
+                this.x,
+                -maxX,
+                maxX
+            );
+
+
+        this.y =
+            this.clamp(
+                this.y,
+                -maxY,
+                maxY
+            );
+
+    }
+
+
+    /* ========================================================
+       WORLD SIZE
+    ======================================================== */
+
+    setWorldSize(
+        width,
+        height = width
+    ) {
+
+        this.worldWidth =
+            Math.max(
+                1,
+                Number(width) || 1
+            );
+
+
+        this.worldHeight =
+            Math.max(
+                1,
+                Number(height) || 1
+            );
+
+
+        this.clampTarget();
+
+    }
+
+
+    /* ========================================================
+       ENABLE / DISABLE
+    ======================================================== */
+
+    setEnabled(
+        enabled
+    ) {
+
+        this.enabled =
+            Boolean(
+                enabled
+            );
+
+
+        if (
+            !this.enabled
+        ) {
+
+            this.pointers.clear();
+
+            this.isDragging =
+                false;
+
+            this.pinchActive =
+                false;
+        }
+
+
+        this.updateCanvasCursor();
+
+    }
+
+
+    /* ========================================================
+       CURSOR
+    ======================================================== */
+
+    updateCanvasCursor() {
+
+        if (!this.canvas)
+            return;
+
+
+        if (!this.enabled) {
+
+            this.canvas.style.cursor =
+                "default";
+
+            return;
+        }
+
+
+        if (
+            this.isDragging
+        ) {
+
+            this.canvas.style.cursor =
+                "grabbing";
+
+        } else {
+
+            this.canvas.style.cursor =
+                "grab";
+        }
+
+    }
+
+
+    /* ========================================================
+       STATE
+    ======================================================== */
+
+    getState() {
+
+        return {
+
+            x:
+                this.x,
+
+            y:
+                this.y,
+
+            zoom:
+                this.zoom,
+
+            targetX:
+                this.targetX,
+
+            targetY:
+                this.targetY,
+
+            targetZoom:
+                this.targetZoom,
+
+            minZoom:
+                this.minZoom,
+
+            maxZoom:
+                this.maxZoom,
+
+            isDragging:
+                this.isDragging,
+
+            pinchActive:
+                this.pinchActive
+        };
+
+    }
+
+
+    /* ========================================================
+       SET STATE
+    ======================================================== */
+
+    setState(
+        state = {},
+        instant = false
+    ) {
+
+        const x =
+            Number(
+                state.x ?? 0
+            );
+
+
+        const y =
+            Number(
+                state.y ?? 0
+            );
+
+
+        const zoom =
+            this.clamp(
+                Number(
+                    state.zoom ?? 1
+                ),
+                this.minZoom,
+                this.maxZoom
+            );
+
+
+        if (instant) {
+
+            this.x =
+                x;
+
+            this.y =
+                y;
+
+            this.zoom =
+                zoom;
+        }
+
+
+        this.targetX =
+            x;
+
+        this.targetY =
+            y;
+
+        this.targetZoom =
+            zoom;
+
+
+        this.clampTarget();
+
+    }
+
+
+    /* ========================================================
+       SCREEN SIZE CHANGE
     ======================================================== */
 
     resize() {
 
         this.clampTarget();
+
+        this.clampCurrent();
+
     }
 
 
@@ -940,19 +2139,30 @@ export class CameraEngine {
        HELPERS
     ======================================================== */
 
-    getPointerDistance(
+    distance(
         a,
         b
     ) {
 
-        return Math.hypot(
-            b.x - a.x,
-            b.y - a.y
+        const dx =
+            b.x -
+            a.x;
+
+
+        const dy =
+            b.y -
+            a.y;
+
+
+        return Math.sqrt(
+            dx * dx +
+            dy * dy
         );
+
     }
 
 
-    getPointerCenter(
+    getCenter(
         a,
         b
     ) {
@@ -963,15 +2173,17 @@ export class CameraEngine {
                 (
                     a.x +
                     b.x
-                ) / 2,
+                ) /
+                2,
 
             y:
                 (
                     a.y +
                     b.y
-                ) / 2
-
+                ) /
+                2
         };
+
     }
 
 
@@ -988,22 +2200,56 @@ export class CameraEngine {
                 value
             )
         );
+
     }
 
+}
 
-    /* ========================================================
-       DESTROY
-    ======================================================== */
 
-    destroy() {
+/* ============================================================
+   DEFAULT CAMERA FACTORY
+============================================================ */
 
-        this.pointers.clear();
+export function createCamera(
+    canvas,
+    options = {}
+) {
 
-        this.isDragging =
-            false;
+    return new CameraEngine(
+        canvas,
+        {
+            minZoom:
+                0.35,
 
-        this.dragPointerId =
-            null;
-    }
+            maxZoom:
+                4,
+
+            zoom:
+                1,
+
+            panSpeed:
+                1,
+
+            zoomSpeed:
+                1,
+
+            smoothness:
+                0.16,
+
+            worldWidth:
+                2400,
+
+            worldHeight:
+                2400,
+
+            limitToWorld:
+                true,
+
+            keyboard:
+                true,
+
+            ...options
+        }
+    );
 
 }
